@@ -1,0 +1,1 @@
+./makeTheCard.py --selection='(abs(dimu_OS1 - 1.020)>0.025)&(abs(dimu_OS2 - 1.020)>0.025)&abs(dimu_OS1 - 0.782)>0.04&fabs(dimu_OS2 - 1.020)>0.04 &bdt_cv > 0.0' --category="taumu"  --signalnorm=0.001  --bdt_point=0.0;
