@@ -33,4 +33,4 @@ if __name__ == "__main__":
         command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhB\"" + "  --signalnorm=0.001"  + "  --bdt_point=%s"%bdt_cut + ";"
 
     print command
-#    os.system(command)
+    os.system(command)
