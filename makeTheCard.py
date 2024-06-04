@@ -13,7 +13,7 @@ import argparse
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--selection'      ,  help="Introduce your selection; [Default: %(default)s] "               , dest='selection'         , default='bdt_cv > -0.1')
-parser.add_argument('--signalnorm'     ,  help="Signal Normalization; [Default: %(default)s] "                   , dest='signalnorm'        , type = float, default=0.005)
+parser.add_argument('--signalnorm'     ,  help="Signal Normalization; [Default: %(default)s] "                   , dest='signalnorm'        , type = float, default=0.5)
 parser.add_argument('--category'       ,  help="Category; [Default: %(default)s] "                               , dest='category'          , default='taumu')
 parser.add_argument('--bdt_point'      ,  help="Prefix_output; [Default: %(default)s] "                          , dest='bdt_point'         , default='0.0')
 parser.add_argument('--datafile'       ,  help="Input Mini Tree; [Default: %(default)s] "                        , dest='datafile'          , default='Combine_Tree_ztau3mutau.root')
@@ -21,7 +21,7 @@ parser.add_argument('--nbins'          ,  help="Number of bins in the mass spect
 parser.add_argument('--signal_range_lo',  help="Signal mass window low edge; [Default: %(default)s] "            , dest='signal_range_lo'   , default=1.73)
 parser.add_argument('--signal_range_hi',  help="Signal mass window high edge; [Default: %(default)s] "           , dest='signal_range_hi'   , default=1.82)
 parser.add_argument('--fit_range_lo'   ,  help="Overal fit range, low edge; [Default: %(default)s] "             , dest='fit_range_lo'      , default=1.60)
-parser.add_argument('--fit_range_hi'   ,  help="Overal fit range, high edge; [Default: %(default)s] "            , dest='fit_range_hi'      , default=2.02)
+parser.add_argument('--fit_range_hi'   ,  help="Overal fit range, high edge; [Default: %(default)s] "            , dest='fit_range_hi'      , default=2.00)
 parser.add_argument('--blinded'        ,  help="Blind the signal range; [Default: %(default)s] "                 , dest='blinded'           , action='store_true', default = True )
 
 parser.set_defaults(blinded=True)
@@ -29,8 +29,7 @@ parser.set_defaults(blinded=True)
 
 
 
-args = parser.parse_args() 
-
+args            = parser.parse_args() 
 blinded         = args.blinded
 selection       = args.selection
 nbins           = args.nbins
@@ -66,10 +65,15 @@ if(args.category == 'tauhB'):treeName = 'ztau3mutauh_B'
 tree = MiniTreeFile.Get(treeName)
 
 mass_histo_mc = ROOT.TH1F('mass_histo_mc', 'mass_histo_mc', nbins, 1.6, 2.)
-#tree.Draw('tripletMass>>mass_histo_mc', '(' + selection + '& dataMCtype !=1 ' + ') * event_weight * %f' %args.signalnorm)
-tree.Draw('tripletMass>>mass_histo_mc', '(' + selection + '& isMC !=0 ' + ') * weight * %f' %args.signalnorm)
-#print "INTEGRAL ",mass_histo_mc.Integral()
+#tree.Draw('tripletMass>>mass_histo_mc', '(' + selection + '& isMC !=0 ' + ') * weight * %f' %args.signalnorm)
+tree.Draw('tripletMass>>mass_histo_mc', '(' + selection + '& isMC !=0 ' + ') * weight ' ) # weight is always one
 
+
+signal_range = mass_histo_mc.Integral(mass_histo_mc.FindFixBin(args.signal_range_lo), mass_histo_mc.FindFixBin(args.signal_range_hi) )
+full_range   = mass_histo_mc.Integral(mass_histo_mc.FindFixBin(args.fit_range_lo), mass_histo_mc.FindFixBin(args.fit_range_hi) )
+ratioToSignal = signal_range/full_range
+
+SignalIntegral = mass_histo_mc.GetEntries() * ratioToSignal *  args.signalnorm    
 
 
 tripletMass          = ROOT.RooRealVar('tripletMass'                , '3#mu mass'           , fit_range_lo, fit_range_hi, 'GeV')
@@ -81,11 +85,18 @@ category             = ROOT.RooRealVar('category'                   , 'category'
 isMC                 = ROOT.RooRealVar('isMC'                       , 'isMC'                ,  0,  100)
 scale                = ROOT.RooRealVar('scale'                      , 'scale'               ,  args.signalnorm)  
 
-print isMC.getVal()
+
 
 tripletMass.setRange('left' , fit_range_lo    , signal_range_lo)
 tripletMass.setRange('right', signal_range_hi , fit_range_hi)
 tripletMass.setRange('full' , fit_range_lo    , fit_range_hi)
+
+
+tripletMass.setRange("SB1",1.62,1.75)
+tripletMass.setRange("SB2",1.80,2.0)
+tripletMass.setRange("fullRange",1.62,2.0);
+tripletMass.setRange("SIG",1.74,1.82)
+
 
 
 
@@ -129,6 +140,8 @@ variables.add(scale)
 
 
 MCSelector = ROOT.RooFormulaVar('MCSelector', 'MCSelector', selection + ' & isMC !=0 ', ROOT.RooArgList(variables))
+
+print("----------------------------------------- scale  ", scale.getVal())
 fullmc = ROOT.RooDataSet('mc', 'mc', tree, variables, MCSelector,'scale')
 
 
@@ -211,7 +224,13 @@ if blinded:
 else:
     results_expo = expomodel.fitTo(fulldata, ROOT.RooFit.Range('full'), ROOT.RooFit.Save())
 
+#print("====================================  integral SB  ",expomodel.createIntegral(ROOT.RooArgSet(tripletMass), ROOT.RooArgSet(tripletMass), "SB1,SB2").getVal())
+#print("====================================  integral SG ",expomodel.createIntegral(ROOT.RooArgSet(tripletMass), ROOT.RooArgSet(tripletMass), "SIG").getVal())
+#print("====================================  integral FL ",expomodel.createIntegral(ROOT.RooArgSet(tripletMass), ROOT.RooArgSet(tripletMass), "fullrange").getVal())
+#print("====================================  integral FL ",expomodel.createIntegral(ROOT.RooArgSet(tripletMass), ROOT.RooArgSet(tripletMass), "fullrange").getVal())
+#print("====================================  nbkg        ", nbkg.getVal()*)
 
+SG_integral = expomodel.createIntegral(ROOT.RooArgSet(tripletMass), ROOT.RooArgSet(tripletMass), "SIG").getVal()
 
 
 expomodel.plotOn(frame,  ROOT.RooFit.LineColor(ROOT.kBlack) )
@@ -265,11 +284,13 @@ mc =  ROOT.RooDataSet(
 )
 
 
+
+
 # create workspace
 
 print 'creating workspace'
-cb_fraction    = ROOT.RooRealVar('cb_fraction' , 'cbfraction' ,   1-fraction.getVal(), 1- fraction.getVal() , 1- fraction.getVal())
-gs_fraction    = ROOT.RooRealVar('gs_fraction' , 'gs_fraction',   fraction.getVal(), fraction.getVal(), fraction.getVal())
+#cb_fraction    = ROOT.RooRealVar('cb_fraction' , 'cbfraction' ,   1-fraction.getVal(), 1- fraction.getVal() , 1- fraction.getVal())
+#gs_fraction    = ROOT.RooRealVar('gs_fraction' , 'gs_fraction',   fraction.getVal(), fraction.getVal(), fraction.getVal())
 
 workspace = ROOT.RooWorkspace('t3m_shapes')
 
@@ -277,31 +298,27 @@ workspace.factory('tripletMass[%f, %f]' % (fit_range_lo, fit_range_hi))
 workspace.factory("Exponential::bkg(tripletMass, a0%s[%f,%f,%f])" %(args.category, slope.getVal(), slope.getError(), slope.getError()) )  
 
 
-workspace.factory('cb_fraction[%f]'  % cb_fraction.getVal())
-workspace.factory('gs_fraction[%f]'  % gs_fraction.getVal())
+#workspace.factory('cb_fraction[%f]'  % cb_fraction.getVal())
+#workspace.factory('gs_fraction[%f]'  % gs_fraction.getVal())
 workspace.factory('mean[%f]'  % mean .getVal())
 workspace.factory('sigma[%f]' % width.getVal())
 workspace.factory('RooGaussian::sig(tripletMass, mean, sigma)')
 
-workspace.factory('cbsigma[%f]' % cbwidth.getVal())
-workspace.factory('cbalpha[%f]' % cbalpha.getVal())
-workspace.factory('cbn[%f]' % cbn.getVal())
-workspace.factory('RooCBShape::cbsig(tripletMass, mean, cbsigma, cbalpha, cbn)')
-
-
-
-
-
+#workspace.factory('cbsigma[%f]' % cbwidth.getVal())
+#workspace.factory('cbalpha[%f]' % cbalpha.getVal())
+#workspace.factory('cbn[%f]' % cbn.getVal())
+#workspace.factory('RooCBShape::cbsig(tripletMass, mean, cbsigma, cbalpha, cbn)')
 
 it = workspace.allVars().createIterator()
 all_vars = [it.Next() for _ in range( workspace.allVars().getSize())]
 for var in all_vars:
-    if var.GetName() in ['mean', 'sigma','cb_fraction','gs_fraction','cbsigma','cbalpha','cbn']:
+#    if var.GetName() in ['mean', 'sigma','cb_fraction','gs_fraction','cbsigma','cbalpha','cbn']:
+    if var.GetName() in ['mean', 'sigma']:
         var.setConstant()
 
-combined_model_fit = ROOT.RooAddPdf("combined_model_fit", "g+a", ROOT.RooArgList(gaus,cb), ROOT.RooArgList(gs_fraction,cb_fraction), False)
+#combined_model_fit = ROOT.RooAddPdf("combined_model_fit", "g+a", ROOT.RooArgList(gaus,cb), ROOT.RooArgList(gs_fraction,cb_fraction), False)
 #combined_model_fit = ROOT.RooAddPdf("combined_model_fit", "g+a", ROOT.RooArgList(gaus,cb), fraction, False)
-getattr(workspace,'import')(combined_model_fit)
+#getattr(workspace,'import')(combined_model_fit)
 
 getattr(workspace,'import')(data)
 getattr(workspace,'import')(mc)
@@ -319,9 +336,9 @@ imax 1 number of bins
 jmax * number of processes minus 1
 kmax * number of nuisance parameters
 --------------------------------------------------------------------------------
-shapes background    category{cat}       ../../workspaces/{wdir}/workspace{cat}.root t3m_shapes:bkg
-shapes signal        category{cat}       ../../workspaces/{wdir}/workspace{cat}.root t3m_shapes:sig_gaus
-shapes data_obs      category{cat}       ../../workspaces/{wdir}/workspace{cat}.root t3m_shapes:data_obs
+shapes background    category{cat}       ../../workspaces/{wdir}/workspace{cat}_bdtcut{bdt}.root t3m_shapes:bkg
+shapes signal        category{cat}       ../../workspaces/{wdir}/workspace{cat}_bdtcut{bdt}.root t3m_shapes:sig
+shapes data_obs      category{cat}       ../../workspaces/{wdir}/workspace{cat}_bdtcut{bdt}.root t3m_shapes:data_obs
 --------------------------------------------------------------------------------
 bin               category{cat}
 observation       {obs:d}
@@ -332,14 +349,17 @@ process                                 signal              background
 process                                 0                   1
 rate                                   {signal:.4f}        {bkg:.4f}
 --------------------------------------------------------------------------------
+lumi              lnN                       1.025               -
 
 --------------------------------------------------------------------------------
 '''.format(
          cat      = args.category,
+         bdt      = args.bdt_point,
          wdir     = args.category,
          obs      = fulldata.numEntries() if blinded==False else -1,
-         signal   = mass_histo_mc.Integral(),
-#         signal   = fullmc.sumEntries(),         # use the ArgDataSet entries instead
-         bkg      = nbkg.getVal(),
+         signal   = SignalIntegral,
+         bkg      = nbkg.getVal()*SG_integral if nbkg.getVal()*SG_integral > 0.01 else 0.01,
          )
 )
+
+
