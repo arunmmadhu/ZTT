@@ -195,7 +195,7 @@ latex.SetTextFont(42)
 latex.SetTextAlign(31)
 latex.DrawLatex(0.57, 0.85, 'taushape%s_%dbins'%(args.category, nbins))
 
-ROOT.gPad.SaveAs('plots/%s/taushape%s_%dbins_bdtcut%s.png'%(args.category,args.category, nbins, args.bdt_point))
+#ROOT.gPad.SaveAs('plots/%s/taushape%s_%dbins_bdtcut%s.png'%(args.category,args.category, nbins, args.bdt_point))
 
 
 DataSelector      = ROOT.RooFormulaVar('DataSelector', 'DataSelector', selection + ' & isMC == 0', ROOT.RooArgList(variables))

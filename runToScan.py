@@ -14,8 +14,8 @@ import array
 if __name__ == "__main__":
 
 
-    phivetoes="\'(abs(dimu_OS1 - 1.020)>0.025)&(abs(dimu_OS2 - 1.020)>0.025)"
-    omegavetoes="&abs(dimu_OS1 - 0.782)>0.04&fabs(dimu_OS2 - 1.020)>0.04"
+    phivetoes="\'(fabs(dimu_OS1 - 1.020)>0.025)&(fabs(dimu_OS2 - 1.020)>0.025)"
+    omegavetoes="&fabs(dimu_OS1 - 0.782)>0.04&fabs(dimu_OS2 - 0.782)>0.04"
 
 
 

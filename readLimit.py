@@ -194,8 +194,8 @@ def main():
 
     bdt_cuts = [-0.4,  -0.2,  0.00, 0.1,   0.2, 0.3, 0.32, 0.33, 0.34, 0.35, 0.36, 0.37, 0.38, 0.39,  0.4, 0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.5, 0.6,  0.7]      # a few entries for test
 
-#    categories = ['taue','taumu','tauhA','tauhB']
-    categories = ['tauhA']
+    categories = ['taue','taumu','tauhA','tauhB']
+#    categories = ['tauhA']
 
     print "category", args.category 
     outputLabel = ''
