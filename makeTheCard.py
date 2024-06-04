@@ -141,7 +141,7 @@ variables.add(scale)
 
 MCSelector = ROOT.RooFormulaVar('MCSelector', 'MCSelector', selection + ' & isMC !=0 ', ROOT.RooArgList(variables))
 
-print("----------------------------------------- scale  ", scale.getVal())
+
 fullmc = ROOT.RooDataSet('mc', 'mc', tree, variables, MCSelector,'scale')
 
 
@@ -224,11 +224,6 @@ if blinded:
 else:
     results_expo = expomodel.fitTo(fulldata, ROOT.RooFit.Range('full'), ROOT.RooFit.Save())
 
-#print("====================================  integral SB  ",expomodel.createIntegral(ROOT.RooArgSet(tripletMass), ROOT.RooArgSet(tripletMass), "SB1,SB2").getVal())
-#print("====================================  integral SG ",expomodel.createIntegral(ROOT.RooArgSet(tripletMass), ROOT.RooArgSet(tripletMass), "SIG").getVal())
-#print("====================================  integral FL ",expomodel.createIntegral(ROOT.RooArgSet(tripletMass), ROOT.RooArgSet(tripletMass), "fullrange").getVal())
-#print("====================================  integral FL ",expomodel.createIntegral(ROOT.RooArgSet(tripletMass), ROOT.RooArgSet(tripletMass), "fullrange").getVal())
-#print("====================================  nbkg        ", nbkg.getVal()*)
 
 SG_integral = expomodel.createIntegral(ROOT.RooArgSet(tripletMass), ROOT.RooArgSet(tripletMass), "SIG").getVal()
 
