@@ -25,13 +25,15 @@ if __name__ == "__main__":
     command=""
     for bdt_cut in bdt_cuts:
 
-        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taue\""  + "  --signalnorm=0.001"  + "  --bdt_point=%s"%bdt_cut + ";"
+        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"all\""  + "  --signalnorm=0.001"  + "  --bdt_point=%s"%bdt_cut + ";"
+        
+#        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taue\""  + "  --signalnorm=0.001"  + "  --bdt_point=%s"%bdt_cut + ";"
 
-        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taumu\"" + "  --signalnorm=0.001"  + "  --bdt_point=%s"%bdt_cut + ";"
+#        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taumu\"" + "  --signalnorm=0.001"  + "  --bdt_point=%s"%bdt_cut + ";"
 
-        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhA\"" + "  --signalnorm=0.001"  + "  --bdt_point=%s"%bdt_cut + ";"
+#        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhA\"" + "  --signalnorm=0.001"  + "  --bdt_point=%s"%bdt_cut + ";"
 
-        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhB\"" + "  --signalnorm=0.001"  + "  --bdt_point=%s"%bdt_cut + ";"
+#        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhB\"" + "  --signalnorm=0.001"  + "  --bdt_point=%s"%bdt_cut + ";"
 
     print command
     os.system(command)

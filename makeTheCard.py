@@ -54,6 +54,7 @@ MiniTreeFile = ROOT.TFile.Open(args.datafile)
 MiniTreeFile.cd()
 
 treeName=''
+if(args.category == 'all'):treeName   = 'ztautau'
 if(args.category == 'taue'):treeName  = 'ztau3mutaue'
 if(args.category == 'taumu'):treeName = 'ztau3mutaumu'
 if(args.category == 'tauhA'):treeName = 'ztau3mutauh_A'
@@ -140,10 +141,8 @@ variables.add(scale)
 
 
 MCSelector = ROOT.RooFormulaVar('MCSelector', 'MCSelector', selection + ' & isMC !=0 ', ROOT.RooArgList(variables))
-
-
 fullmc = ROOT.RooDataSet('mc', 'mc', tree, variables, MCSelector,'scale')
-
+print('------------------------------------------------------------------------------ > scale  ',args.signalnorm)
 
 frame = tripletMass.frame()
 frame.SetTitle('')
