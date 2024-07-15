@@ -17,9 +17,9 @@ parser.add_argument('--signalnorm'     ,  help="Signal Normalization; [Default: 
 parser.add_argument('--category'       ,  help="Category; [Default: %(default)s] "                               , dest='category'          , default='taumu')
 parser.add_argument('--bdt_point'      ,  help="Prefix_output; [Default: %(default)s] "                          , dest='bdt_point'         , default='0.0')
 parser.add_argument('--datafile'       ,  help="Input Mini Tree; [Default: %(default)s] "                        , dest='datafile'          , default='Combine_Tree_ztau3mutau.root')
-parser.add_argument('--nbins'          ,  help="Number of bins in the mass spectra; [Default: %(default)s] "     , dest='nbins'             , type = int  , default=30)
-parser.add_argument('--signal_range_lo',  help="Signal mass window low edge; [Default: %(default)s] "            , dest='signal_range_lo'   , default=1.73)
-parser.add_argument('--signal_range_hi',  help="Signal mass window high edge; [Default: %(default)s] "           , dest='signal_range_hi'   , default=1.82)
+parser.add_argument('--nbins'          ,  help="Number of bins in the mass spectra; [Default: %(default)s] "     , dest='nbins'             , type = int  , default=40)
+parser.add_argument('--signal_range_lo',  help="Signal mass window low edge; [Default: %(default)s] "            , dest='signal_range_lo'   , default=1.74)
+parser.add_argument('--signal_range_hi',  help="Signal mass window high edge; [Default: %(default)s] "           , dest='signal_range_hi'   , default=1.81)
 parser.add_argument('--fit_range_lo'   ,  help="Overal fit range, low edge; [Default: %(default)s] "             , dest='fit_range_lo'      , default=1.60)
 parser.add_argument('--fit_range_hi'   ,  help="Overal fit range, high edge; [Default: %(default)s] "            , dest='fit_range_hi'      , default=2.00)
 parser.add_argument('--blinded'        ,  help="Blind the signal range; [Default: %(default)s] "                 , dest='blinded'           , action='store_true', default = True )
@@ -65,13 +65,14 @@ if(args.category == 'tauhB'):treeName = 'ztau3mutauh_B'
 
 tree = MiniTreeFile.Get(treeName)
 
-mass_histo_mc = ROOT.TH1F('mass_histo_mc', 'mass_histo_mc', nbins, 1.6, 2.)
+mass_histo_mc = ROOT.TH1F('mass_histo_mc', 'mass_histo_mc', nbins, fit_range_lo, fit_range_hi)
 #tree.Draw('tripletMass>>mass_histo_mc', '(' + selection + '& isMC !=0 ' + ') * weight * %f' %args.signalnorm)
-tree.Draw('tripletMass>>mass_histo_mc', '(' + selection + '& isMC !=0 ' + ') * weight ' ) # weight is always one
+tree.Draw('tripletMass>>mass_histo_mc', '(' + selection + '& isMC !=0 ' + ') ' ) # weight is always one
 
 
 signal_range = mass_histo_mc.Integral(mass_histo_mc.FindFixBin(args.signal_range_lo), mass_histo_mc.FindFixBin(args.signal_range_hi) )
 full_range   = mass_histo_mc.Integral(mass_histo_mc.FindFixBin(args.fit_range_lo), mass_histo_mc.FindFixBin(args.fit_range_hi) )
+
 ratioToSignal = signal_range/full_range
 
 SignalIntegral = mass_histo_mc.GetEntries() * ratioToSignal *  args.signalnorm    
@@ -93,15 +94,15 @@ tripletMass.setRange('right', signal_range_hi , fit_range_hi)
 tripletMass.setRange('full' , fit_range_lo    , fit_range_hi)
 
 
-tripletMass.setRange("SB1",1.62,1.75)
-tripletMass.setRange("SB2",1.80,2.0)
-tripletMass.setRange("fullRange",1.62,2.0);
-tripletMass.setRange("SIG",1.74,1.82)
+tripletMass.setRange("SB1",fit_range_lo,1.75)
+tripletMass.setRange("SB2",1.80,fit_range_hi)
+tripletMass.setRange("fullRange",fit_range_lo,fit_range_hi);
+tripletMass.setRange("SIG",signal_range_lo,signal_range_hi)
 
 
 
 
-slope = ROOT.RooRealVar('slope', 'slope', -0.001, -5, 5)
+slope = ROOT.RooRealVar('slope', 'slope', -0.001, -10, 10)
 expo  = ROOT.RooExponential('bkg_expo', 'bkg_expo', tripletMass, slope)
 
 
@@ -141,8 +142,10 @@ variables.add(scale)
 
 
 MCSelector = ROOT.RooFormulaVar('MCSelector', 'MCSelector', selection + ' & isMC !=0 ', ROOT.RooArgList(variables))
+
+
 fullmc = ROOT.RooDataSet('mc', 'mc', tree, variables, MCSelector,'scale')
-print('------------------------------------------------------------------------------ > scale  ',args.signalnorm)
+
 
 frame = tripletMass.frame()
 frame.SetTitle('')
@@ -198,7 +201,7 @@ latex.DrawLatex(0.57, 0.85, 'taushape%s_%dbins'%(args.category, nbins))
 
 
 DataSelector      = ROOT.RooFormulaVar('DataSelector', 'DataSelector', selection + ' & isMC == 0', ROOT.RooArgList(variables))
-BlindDataSelector = ROOT.RooFormulaVar('DataSelector', 'DataSelector', selection + ' & isMC == 0 &  abs(tripletMass  - 1.776) > %s' %( (signal_range_hi -signal_range_lo)/2) , ROOT.RooArgList(variables))
+BlindDataSelector = ROOT.RooFormulaVar('DataSelector', 'DataSelector', selection + ' & isMC == 0 & (tripletMass<=%s || tripletMass>=%s) ' %(signal_range_lo,signal_range_hi) , ROOT.RooArgList(variables))
 
 
 
@@ -223,11 +226,16 @@ if blinded:
 else:
     results_expo = expomodel.fitTo(fulldata, ROOT.RooFit.Range('full'), ROOT.RooFit.Save())
 
+#print("Normalization: ",nbkg.getVal())
 
 SG_integral = expomodel.createIntegral(ROOT.RooArgSet(tripletMass), ROOT.RooArgSet(tripletMass), "SIG").getVal()
+SB_integral = expomodel.createIntegral(ROOT.RooArgSet(tripletMass), ROOT.RooArgSet(tripletMass), "left,right").getVal()
 
 
-expomodel.plotOn(frame,  ROOT.RooFit.LineColor(ROOT.kBlack) )
+if blinded:
+    expomodel.plotOn(frame,  ROOT.RooFit.LineColor(ROOT.kBlack) , ROOT.RooFit.Normalization(nbkg.getVal()*SB_integral, ROOT.RooAbsReal.NumEvent), ROOT.RooFit.ProjectionRange('full') )
+else:
+    expomodel.plotOn(frame,  ROOT.RooFit.LineColor(ROOT.kBlack) , ROOT.RooFit.Normalization(nbkg.getVal(), ROOT.RooAbsReal.NumEvent), ROOT.RooFit.ProjectionRange('full') )
 
 
 
@@ -352,7 +360,7 @@ lumi              lnN                       1.025               -
          wdir     = args.category,
          obs      = fulldata.numEntries() if blinded==False else -1,
          signal   = SignalIntegral,
-         bkg      = nbkg.getVal()*SG_integral if nbkg.getVal()*SG_integral > 0.01 else 0.01,
+         bkg      = nbkg.getVal()*SG_integral if nbkg.getVal()*SG_integral > 0.0001 else 0.0001,
          )
 )
 
