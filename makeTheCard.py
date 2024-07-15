@@ -67,7 +67,7 @@ tree = MiniTreeFile.Get(treeName)
 
 mass_histo_mc = ROOT.TH1F('mass_histo_mc', 'mass_histo_mc', nbins, fit_range_lo, fit_range_hi)
 #tree.Draw('tripletMass>>mass_histo_mc', '(' + selection + '& isMC !=0 ' + ') * weight * %f' %args.signalnorm)
-tree.Draw('tripletMass>>mass_histo_mc', '(' + selection + '& isMC !=0 & (isMC == 211 | isMC == 5 | isMC == 6 | isMC == 7 ) ' + ') ' ) # weight is always one
+tree.Draw('tripletMass>>mass_histo_mc', '(' + selection + '& isMC !=0 & (isMC == 211 | isMC == 210231 | isMC == 210232 | isMC == 210233 ) ' + ') ' ) # weight is always one
 
 
 signal_range = mass_histo_mc.Integral(mass_histo_mc.FindFixBin(args.signal_range_lo), mass_histo_mc.FindFixBin(args.signal_range_hi) )
@@ -141,7 +141,7 @@ variables.add(isMC)
 variables.add(scale)
 
 
-MCSelector = ROOT.RooFormulaVar('MCSelector', 'MCSelector', selection + ' & isMC !=0 & (isMC == 211 | isMC == 5 | isMC == 6 | isMC == 7 ) ', ROOT.RooArgList(variables))
+MCSelector = ROOT.RooFormulaVar('MCSelector', 'MCSelector', selection + ' & isMC !=0 & (isMC == 211 | isMC == 210231 | isMC == 210232 | isMC == 210233 ) ', ROOT.RooArgList(variables))
 
 
 fullmc = ROOT.RooDataSet('mc', 'mc', tree, variables, MCSelector,'scale')
