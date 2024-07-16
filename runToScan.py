@@ -6,9 +6,33 @@ import ROOT
 from ROOT import TFile
 import math
 import array
+import numpy as np
 
-
-
+#Function to generate BDT cuts
+def generate_bdt_cuts(minimum, maximum, median):
+    # Ensure minimum, median, and maximum are properly ordered
+    if not (minimum < median < maximum):
+        raise ValueError("Minimum, median, and maximum must be ordered as minimum < median < maximum.")
+    
+    nominal_step = 0.0001
+    step_1 = 0.02
+    step_2 = 0.05
+    
+    # How close to the median do we have granular steps (decrease to have a smaller region of granularity)
+    how_close = 0.5
+    
+    # Generate more points around the median
+    left_side_ll = np.arange(minimum, round((minimum*how_close+median*(1-how_close)), 2) , step_2)
+    left_side_l = np.arange(round((minimum*how_close+median*(1-how_close)), 2), median, step_1)
+    right_side_r = np.arange(median, round((maximum*how_close+median*(1-how_close)), 2), step_1)
+    right_side_rr = np.arange(round((maximum*how_close+median*(1-how_close)), 2), maximum + nominal_step, step_2)
+    
+    # Combine and round to two decimal places
+    bdt_cuts = np.concatenate((left_side_ll, left_side_l, right_side_r, right_side_rr))
+    bdt_cuts = np.round(bdt_cuts, 2)
+    bdt_cuts = np.unique(bdt_cuts)
+    
+    return bdt_cuts.tolist()
 
 
 if __name__ == "__main__":
@@ -20,20 +44,28 @@ if __name__ == "__main__":
 
 
 
-    bdt_cuts = [-0.4,  -0.2,  0.00, 0.1, 0.2, 0.3, 0.31, 0.32, 0.33, 0.34, 0.35, 0.36, 0.37, 0.38, 0.39,  0.4, 0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.47, 0.48, 0.49, 0.5, 0.6, 0.7]   
+    bdt_cuts_all = generate_bdt_cuts(0.1, 0.8, 0.55)
+    bdt_cuts_taue = generate_bdt_cuts(-0.2, 0.6, 0.2)
+    bdt_cuts_taumu = generate_bdt_cuts(0.0, 0.6, 0.4)
+    bdt_cuts_tauhA = generate_bdt_cuts(-0.2, 0.6, 0.2)
+    bdt_cuts_tauhB =  generate_bdt_cuts(-0.2, 0.6, 0.2)
 
     command=""
-    for bdt_cut in bdt_cuts:
-
+    for bdt_cut in bdt_cuts_all:
         command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"all\""  + "  --signalnorm=0.00000712772"  + "  --bdt_point=%s"%bdt_cut + ";"
-        
+    
+    for bdt_cut in bdt_cuts_taue:
         command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taue\""  + "  --signalnorm=0.00000741099"  + "  --bdt_point=%s"%bdt_cut + ";"
-
+        
+    for bdt_cut in bdt_cuts_taumu:
         command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taumu\"" + "  --signalnorm=0.00000711593"  + "  --bdt_point=%s"%bdt_cut + ";"
-
+    
+    for bdt_cut in bdt_cuts_tauhA:
         command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhA\"" + "  --signalnorm=0.00000705558"  + "  --bdt_point=%s"%bdt_cut + ";"
-
+        
+    for bdt_cut in bdt_cuts_tauhB:
         command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhB\"" + "  --signalnorm=0.00000705558"  + "  --bdt_point=%s"%bdt_cut + ";"
+    
 
     print command
     os.system(command)

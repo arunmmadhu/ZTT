@@ -5,6 +5,7 @@ from ROOT import TFile, TTree, TCanvas, TGraph, TMultiGraph, TGraphErrors, TLege
 import CMS_lumi, tdrstyle
 import subprocess # to execute shell command
 import argparse
+import numpy as np
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--category'       ,  help="Category; [Default: %(default)s] "                               , dest='category'          , default='taumu')
@@ -18,6 +19,33 @@ CMS_lumi.extraText = ""
 CMS_lumi.cmsTextSize = 0.65
 CMS_lumi.outOfFrame = True
 tdrstyle.setTDRStyle()
+
+
+#Function to generate BDT cuts
+def generate_bdt_cuts(minimum, maximum, median):
+    # Ensure minimum, median, and maximum are properly ordered
+    if not (minimum < median < maximum):
+        raise ValueError("Minimum, median, and maximum must be ordered as minimum < median < maximum.")
+    
+    nominal_step = 0.0001
+    step_1 = 0.02
+    step_2 = 0.05
+    
+    # How close to the median do we have granular steps (decrease to have a smaller region of granularity)
+    how_close = 0.5
+    
+    # Generate more points around the median
+    left_side_ll = np.arange(minimum, round((minimum*how_close+median*(1-how_close)), 2) , step_2)
+    left_side_l = np.arange(round((minimum*how_close+median*(1-how_close)), 2), median, step_1)
+    right_side_r = np.arange(median, round((maximum*how_close+median*(1-how_close)), 2), step_1)
+    right_side_rr = np.arange(round((maximum*how_close+median*(1-how_close)), 2), maximum + nominal_step, step_2)
+    
+    # Combine and round to two decimal places
+    bdt_cuts = np.concatenate((left_side_ll, left_side_l, right_side_r, right_side_rr))
+    bdt_cuts = np.round(bdt_cuts, 2)
+    bdt_cuts = np.unique(bdt_cuts)
+    
+    return bdt_cuts.tolist()
  
 
  
@@ -106,14 +134,17 @@ def plotUpperLimits(labels,values,prefix,outputLabel):
     frame.GetYaxis().SetTitleOffset(0.9)
     frame.GetXaxis().SetNdivisions(508)
     frame.GetYaxis().CenterTitle(False)
-    frame.GetYaxis().SetTitle("B(#tau #rightarrow #mu#mu#mu) (arbitrary)")
+    frame.GetYaxis().SetTitle("B(#tau #rightarrow #mu#mu#mu) (10^{-7})")
     frame.GetXaxis().SetTitle("MVA cut value")
 
 
 
 
-    frame.SetMinimum(0.01)
-    frame.SetMaximum(1.0)
+    #frame.SetMinimum(median.GetHistogram().GetMinimum()*0.8)
+    #frame.SetMaximum(median.GetHistogram().GetMinimum()+(5.0/3.0)*(median.GetHistogram().GetMaximum()-median.GetHistogram().GetMinimum()))
+    
+    frame.SetMinimum(0.0)
+    frame.SetMaximum(25.0)
 
 #    frame.GetXaxis().SetLimits(min(values),max(values)*1.2)
     frame.GetXaxis().SetLimits(min(values) ,max(values)*1.2)
@@ -168,10 +199,13 @@ def plotUpperLimits(labels,values,prefix,outputLabel):
         Text = 'Category: Z#rightarrow#tau_{#mu}#tau_{3#mu}'
 
     if prefix=='tauhA':
-        Text = 'Category: Z#rightarrow#tau_{hA}#tau_{3#mu}'
+        Text = 'Category: Z#rightarrow#tau_{h,1-prong}#tau_{3#mu}'
 
     if prefix=='tauhB':
-        Text = 'Category: Z#rightarrow#tau_{hB}#tau_{3#mu}'
+        Text = 'Category: Z#rightarrow#tau_{h,3-prong}#tau_{3#mu}'
+        
+    if prefix=='all':
+        Text = 'Category: Z#rightarrow#tau#tau_{3#mu}'
 
     latex.DrawLatex(0.57, 0.85, Text)
     latex.Draw('same') 
@@ -192,16 +226,33 @@ def frange(start, stop, step):
 def main():
  
 
-    bdt_cuts = [-0.4,  -0.2,  0.00, 0.1,   0.2, 0.3, 0.32, 0.33, 0.34, 0.35, 0.36, 0.37, 0.38, 0.39,  0.4, 0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.5, 0.6,  0.7]      # a few entries for test
+    #bdt_cuts = [-0.4,  -0.2,  0.00, 0.1, 0.2, 0.3, 0.31, 0.32, 0.33, 0.34, 0.35, 0.36, 0.37, 0.38, 0.39,  0.4, 0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.47, 0.48, 0.49, 0.5, 0.6, 0.7]      # a few entries for test
+    #bdt_cuts = [-0.4,  -0.2,  0.00, 0.1, 0.2, 0.3, 0.31, 0.32, 0.33, 0.34, 0.35, 0.36, 0.37]      # a few entries for test
 
-    categories = ['taue','taumu','tauhA','tauhB']
-#    categories = ['tauhA']
+    #categories = ['taue','taumu','tauhA','tauhB','all']
+    categories = ['tauhB']
+    
+    bdt_cuts_all = generate_bdt_cuts(0.1, 0.8, 0.55)
+    bdt_cuts_taue = generate_bdt_cuts(-0.2, 0.6, 0.2)
+    bdt_cuts_taumu = generate_bdt_cuts(0.0, 0.6, 0.4)
+    bdt_cuts_tauhA = generate_bdt_cuts(-0.2, 0.6, 0.2)
+    bdt_cuts_tauhB =  generate_bdt_cuts(-0.2, 0.6, 0.2)
+    
+    bdt_cut_dict = {
+    'all': bdt_cuts_all,
+    'taue': bdt_cuts_taue,
+    'taumu': bdt_cuts_taumu,
+    'tauhA': bdt_cuts_tauhA,
+    'tauhB': bdt_cuts_tauhB
+    }
 
     print "category", args.category 
     outputLabel = ''
     for cat in categories:
         labels = [ ]
         values = [ ]
+        
+        bdt_cuts = bdt_cut_dict[cat]
 
         for cl in bdt_cuts:
             values.append(cl)

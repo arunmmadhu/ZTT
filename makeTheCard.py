@@ -27,8 +27,6 @@ parser.add_argument('--blinded'        ,  help="Blind the signal range; [Default
 parser.set_defaults(blinded=True)
 
 
-
-
 args            = parser.parse_args() 
 blinded         = args.blinded
 selection       = args.selection
@@ -44,6 +42,9 @@ print "bdtprefix: ", args.bdt_point
 
 ROOT.gStyle.SetOptStat(True)
 ROOT.TH1.SetDefaultSumw2()
+
+# Enable batch mode
+ROOT.gROOT.SetBatch(True)
 
 
 #if len(args.category)>0:
