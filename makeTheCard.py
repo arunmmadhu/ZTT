@@ -22,9 +22,12 @@ parser.add_argument('--signal_range_lo',  help="Signal mass window low edge; [De
 parser.add_argument('--signal_range_hi',  help="Signal mass window high edge; [Default: %(default)s] "           , dest='signal_range_hi'   , default=1.81)
 parser.add_argument('--fit_range_lo'   ,  help="Overal fit range, low edge; [Default: %(default)s] "             , dest='fit_range_lo'      , default=1.60)
 parser.add_argument('--fit_range_hi'   ,  help="Overal fit range, high edge; [Default: %(default)s] "            , dest='fit_range_hi'      , default=2.00)
-parser.add_argument('--blinded'        ,  help="Blind the signal range; [Default: %(default)s] "                 , dest='blinded'           , action='store_true', default = True )
+parser.add_argument('--blinded'        ,  help="Blind the signal range; [Default: %(default)s] "                 , dest='blinded'           , action='store_true', default = False )
+parser.add_argument('--alt_pdf'          ,  help="Whether to use an alternate PDF; [Default: %(default)s] "             , dest='alt_pdf', action='store_true', default = False )
+parser.add_argument('--pdf_switch_point' ,  help="Point where you switch to the alternate PDF; [Default: %(default)s] " , dest='pdf_switch_point'  , default = 0.0 )
 
 parser.set_defaults(blinded=True)
+parser.set_defaults(alt_pdf=True)
 
 
 args            = parser.parse_args() 
@@ -36,6 +39,8 @@ signal_range_hi = double(args.signal_range_hi)
 fit_range_lo    = double(args.fit_range_lo)
 fit_range_hi    = double(args.fit_range_hi)
 minitree        = args.datafile
+alt_pdf         = args.alt_pdf
+pdf_switch_point= args.pdf_switch_point
 
 print "selection: ", selection
 print "bdtprefix: ", args.bdt_point
@@ -106,10 +111,16 @@ tripletMass.setRange("SIG",signal_range_lo,signal_range_hi)
 slope = ROOT.RooRealVar('slope', 'slope', -0.001, -10, 10)
 expo  = ROOT.RooExponential('bkg_expo', 'bkg_expo', tripletMass, slope)
 
-
+flat_poly  = ROOT.RooPolynomial('bkg_flat_poly', 'bkg_flat_poly', tripletMass)
 
 nbkg = ROOT.RooRealVar('nbkg', 'nbkg', 1000, 0, 500000)
-expomodel = ROOT.RooAddPdf('bkg_extended_expo', 'bkg_extended_expo', ROOT.RooArgList(expo), ROOT.RooArgList(nbkg))
+
+#Switching to flat polynomial after a certain point
+
+if alt_pdf and args.bdt_point > pdf_switch_point:
+        pdfmodel = ROOT.RooAddPdf('bkg_flat_expo', 'bkg_flat_expo', ROOT.RooArgList(flat_poly), ROOT.RooArgList(nbkg))
+else:
+        pdfmodel = ROOT.RooAddPdf('bkg_extended_expo', 'bkg_extended_expo', ROOT.RooArgList(expo), ROOT.RooArgList(nbkg))
 
 
 mean  = ROOT.RooRealVar('mean' , 'mean' ,   1.78, 1.6, 1.9)
@@ -223,20 +234,20 @@ fulldata.plotOn(frame,
 
 
 if blinded:
-    results_expo = expomodel.fitTo(fulldata, ROOT.RooFit.Range('left,right'), ROOT.RooFit.Save())
+    results_pdf = pdfmodel.fitTo(fulldata, ROOT.RooFit.Range('left,right'), ROOT.RooFit.Save())
 else:
-    results_expo = expomodel.fitTo(fulldata, ROOT.RooFit.Range('full'), ROOT.RooFit.Save())
+    results_pdf = pdfmodel.fitTo(fulldata, ROOT.RooFit.Range('full'), ROOT.RooFit.Save())
 
 #print("Normalization: ",nbkg.getVal())
 
-SG_integral = expomodel.createIntegral(ROOT.RooArgSet(tripletMass), ROOT.RooArgSet(tripletMass), "SIG").getVal()
-SB_integral = expomodel.createIntegral(ROOT.RooArgSet(tripletMass), ROOT.RooArgSet(tripletMass), "left,right").getVal()
+SG_integral = pdfmodel.createIntegral(ROOT.RooArgSet(tripletMass), ROOT.RooArgSet(tripletMass), "SIG").getVal()
+SB_integral = pdfmodel.createIntegral(ROOT.RooArgSet(tripletMass), ROOT.RooArgSet(tripletMass), "left,right").getVal()
 
 
 if blinded:
-    expomodel.plotOn(frame,  ROOT.RooFit.LineColor(ROOT.kBlack) , ROOT.RooFit.Normalization(nbkg.getVal()*SB_integral, ROOT.RooAbsReal.NumEvent), ROOT.RooFit.ProjectionRange('full') )
+    pdfmodel.plotOn(frame,  ROOT.RooFit.LineColor(ROOT.kBlack) , ROOT.RooFit.Normalization(nbkg.getVal()*SB_integral, ROOT.RooAbsReal.NumEvent), ROOT.RooFit.ProjectionRange('full') )
 else:
-    expomodel.plotOn(frame,  ROOT.RooFit.LineColor(ROOT.kBlack) , ROOT.RooFit.Normalization(nbkg.getVal(), ROOT.RooAbsReal.NumEvent), ROOT.RooFit.ProjectionRange('full') )
+    pdfmodel.plotOn(frame,  ROOT.RooFit.LineColor(ROOT.kBlack) , ROOT.RooFit.Normalization(nbkg.getVal(), ROOT.RooAbsReal.NumEvent), ROOT.RooFit.ProjectionRange('full') )
 
 
 
@@ -298,7 +309,11 @@ print 'creating workspace'
 workspace = ROOT.RooWorkspace('t3m_shapes')
 
 workspace.factory('tripletMass[%f, %f]' % (fit_range_lo, fit_range_hi))
-workspace.factory("Exponential::bkg(tripletMass, a0%s[%f,%f,%f])" %(args.category, slope.getVal(), slope.getError(), slope.getError()) )  
+
+if alt_pdf and args.bdt_point > pdf_switch_point:
+        workspace.factory("Polynomial::bkg(tripletMass, a0%s[%f])" %(args.category,1.0) ) 
+else:
+        workspace.factory("Exponential::bkg(tripletMass, a0%s[%f,%f,%f])" %(args.category, slope.getVal(), slope.getError(), slope.getError()) ) 
 
 
 #workspace.factory('cb_fraction[%f]'  % cb_fraction.getVal())
@@ -364,5 +379,11 @@ lumi              lnN                       1.025               -
          bkg      = nbkg.getVal()*SG_integral if nbkg.getVal()*SG_integral > 0.0001 else 0.0001,
          )
 )
+
+#print "SG_integral: ", SG_integral
+#print "nbkg.getVal(): ", nbkg.getVal()
+#print "expo.getVal(): ", expo.getVal()
+#print "nbkg.getVal()*SB_integral: ", nbkg.getVal()*SB_integral
+
 
 
