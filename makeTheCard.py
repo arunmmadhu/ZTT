@@ -377,7 +377,7 @@ lumi              lnN                       1.025               -
          wdir     = args.category,
          obs      = fulldata.numEntries() if blinded==False else -1,
          signal   = SignalIntegral,
-         bkg      = nbkg.getVal()*SG_integral if nbkg.getVal()*SG_integral > 0.0001 else 0.0001,
+         bkg      = nbkg.getVal()*SG_integral if nbkg.getVal()*SG_integral > 0.001 else 0.001,
          )
 )
 

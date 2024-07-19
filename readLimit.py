@@ -54,7 +54,11 @@ def executeDataCards(labels,values, category):
  
     for value in values:
         label = "%s" % (value)
-        combine_command = "combineTool.py -M AsymptoticLimits  -n %s -d %s" % (category+label,'datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
+#        combine_command = "combineTool.py -M AsymptoticLimits  -n %s -d %s " % (category+label,'datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
+#        combine_command = "combineTool.py -M BayesianSimple  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 " % (category+label,'datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
+        combine_command = "combineTool.py -M HybridNew --LHCmode LHC-limits  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 " % (category+label,'datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+labe\
+l+'.txt')
+
         print ""
         print ">>> " + combine_command
 
