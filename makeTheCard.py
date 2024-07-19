@@ -23,7 +23,8 @@ parser.add_argument('--signal_range_hi',  help="Signal mass window high edge; [D
 parser.add_argument('--fit_range_lo'   ,  help="Overal fit range, low edge; [Default: %(default)s] "             , dest='fit_range_lo'      , default=1.60)
 parser.add_argument('--fit_range_hi'   ,  help="Overal fit range, high edge; [Default: %(default)s] "            , dest='fit_range_hi'      , default=2.00)
 parser.add_argument('--blinded'        ,  help="Blind the signal range; [Default: %(default)s] "                 , dest='blinded'           , action='store_true', default = False )
-parser.add_argument('--alt_pdf'          ,  help="Whether to use an alternate PDF; [Default: %(default)s] "             , dest='alt_pdf', action='store_true', default = False )
+parser.add_argument('--alt_pdf'          ,  help="Whether to use an alternate PDF, True; [Default: %(default)s] "       , dest='alt_pdf', action='store_true', default = False )
+parser.add_argument('--no-alt_pdf'          ,  help="Whether to use an alternate PDF, False; [Default: %(default)s] "   , dest='alt_pdf', action='store_false' )
 parser.add_argument('--pdf_switch_point' ,  help="Point where you switch to the alternate PDF; [Default: %(default)s] " , dest='pdf_switch_point'  , default = 0.0 )
 
 parser.set_defaults(blinded=True)

@@ -68,8 +68,7 @@ if __name__ == "__main__":
         pass
         
     for bdt_cut in bdt_cuts_tauhB:
-        #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhB\"" + "  --signalnorm=0.00000705558"  + "  --bdt_point=%s"%bdt_cut + " --alt_pdf=True "  + "  --pdf_switch_point=0.0 " + ";"
-        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhB\"" + "  --signalnorm=0.00000705558"  + "  --bdt_point=%s"%bdt_cut + ";"
+        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhB\"" + "  --signalnorm=0.00000705558"  + "  --bdt_point=%s"%bdt_cut + " --alt_pdf "  + "  --pdf_switch_point=0.0 " + ";"
         #pass
     
 
