@@ -10,13 +10,17 @@ from array import array
 from numpy import *
 import math
 import argparse
+import tdrstyle
+from CMSStyle import CMS_lumi
+
+
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--selection'      ,  help="Introduce your selection; [Default: %(default)s] "               , dest='selection'         , default='bdt_cv > -0.1')
 parser.add_argument('--signalnorm'     ,  help="Signal Normalization; [Default: %(default)s] "                   , dest='signalnorm'        , type = float, default=0.5)
 parser.add_argument('--category'       ,  help="Category; [Default: %(default)s] "                               , dest='category'          , default='taumu')
 parser.add_argument('--bdt_point'      ,  help="Prefix_output; [Default: %(default)s] "                          , dest='bdt_point'         , default='0.0')
-parser.add_argument('--datafile'       ,  help="Input Mini Tree; [Default: %(default)s] "                        , dest='datafile'          , default='Combine_Tree_ztau3mutau.root')
+parser.add_argument('--datafile'       ,  help="Input Mini Tree; [Default: %(default)s] "                        , dest='datafile'          , default='../../Combine_Tree_ztau3mutau.root')
 parser.add_argument('--nbins'          ,  help="Number of bins in the mass spectra; [Default: %(default)s] "     , dest='nbins'             , type = int  , default=40)
 parser.add_argument('--signal_range_lo',  help="Signal mass window low edge; [Default: %(default)s] "            , dest='signal_range_lo'   , default=1.74)
 parser.add_argument('--signal_range_hi',  help="Signal mass window high edge; [Default: %(default)s] "           , dest='signal_range_hi'   , default=1.81)
@@ -51,7 +55,7 @@ ROOT.TH1.SetDefaultSumw2()
 
 # Enable batch mode
 ROOT.gROOT.SetBatch(True)
-
+tdrstyle.setTDRStyle()
 
 #if len(args.category)>0:
 #    args.category = '_'+args.category
@@ -168,7 +172,7 @@ fullmc.plotOn(frame,
               ROOT.RooFit.XErrorSize(0), 
               ROOT.RooFit.LineWidth(2),
               ROOT.RooFit.MarkerStyle(6),
-              ROOT.RooFit.MarkerColor(ROOT.kCyan + 2),
+              ROOT.RooFit.MarkerColor(ROOT.kRed ),
               ROOT.RooFit.MarkerSize(0.75),
               ROOT.RooFit.FillColor(ROOT.kCyan  + 2),
 )
@@ -192,7 +196,7 @@ results_gaus.Print()
 #results_gaus = gaus.fitTo(fullmc, ROOT.RooFit.Save(), ROOT.RooFit.SumW2Error(True))
 #results_gaus = gaus.chi2FitTo(fullmc, ROOT.RooFit.Save())
 
-gaus.plotOn(frame, ROOT.RooFit.LineColor(ROOT.kRed +2 ))
+gaus.plotOn(frame, ROOT.RooFit.LineColor(ROOT.kRed ))
 #cb.plotOn(frame, ROOT.RooFit.LineColor(ROOT.kMagenta +2 ))
 #combined_model.plotOn(frame, ROOT.RooFit.LineColor(ROOT.kCyan +2 ))
 
@@ -229,7 +233,7 @@ else:
 
 fulldata.plotOn(frame, 
                 ROOT.RooFit.Binning(nbins),
-                ROOT.RooFit.MarkerStyle(21),
+                ROOT.RooFit.MarkerStyle(20),
                 ROOT.RooFit.MarkerColor(ROOT.kBlack), 
                 ROOT.RooFit.MarkerSize(0.75))
 
@@ -246,9 +250,9 @@ SB_integral = pdfmodel.createIntegral(ROOT.RooArgSet(tripletMass), ROOT.RooArgSe
 
 
 if blinded:
-    pdfmodel.plotOn(frame,  ROOT.RooFit.LineColor(ROOT.kBlack) , ROOT.RooFit.Normalization(nbkg.getVal()*SB_integral, ROOT.RooAbsReal.NumEvent), ROOT.RooFit.ProjectionRange('full') )
+    pdfmodel.plotOn(frame,  ROOT.RooFit.LineColor(ROOT.kBlue) , ROOT.RooFit.Normalization(nbkg.getVal()*SB_integral, ROOT.RooAbsReal.NumEvent), ROOT.RooFit.ProjectionRange('full') )
 else:
-    pdfmodel.plotOn(frame,  ROOT.RooFit.LineColor(ROOT.kBlack) , ROOT.RooFit.Normalization(nbkg.getVal(), ROOT.RooAbsReal.NumEvent), ROOT.RooFit.ProjectionRange('full') )
+    pdfmodel.plotOn(frame,  ROOT.RooFit.LineColor(ROOT.kBlue) , ROOT.RooFit.Normalization(nbkg.getVal(), ROOT.RooAbsReal.NumEvent), ROOT.RooFit.ProjectionRange('full') )
 
 
 
@@ -355,9 +359,6 @@ imax 1 number of bins
 jmax * number of processes minus 1
 kmax * number of nuisance parameters
 --------------------------------------------------------------------------------
-shapes background    category{cat}       ../../workspaces/{wdir}/workspace{cat}_bdtcut{bdt}.root t3m_shapes:bkg
-shapes signal        category{cat}       ../../workspaces/{wdir}/workspace{cat}_bdtcut{bdt}.root t3m_shapes:sig
-shapes data_obs      category{cat}       ../../workspaces/{wdir}/workspace{cat}_bdtcut{bdt}.root t3m_shapes:data_obs
 --------------------------------------------------------------------------------
 bin               category{cat}
 observation       {obs:d}

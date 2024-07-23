@@ -1,44 +1,47 @@
 import ROOT as rt
- 
+
 # CMS_lumi
 #   Initiated by: Gautier Hamel de Monchenault (Saclay)
 #   Translated in Python by: Joshua Hardenbrook (Princeton)
-#   Updated by:   Dinko Ferencek (Rutgers)
 #
- 
-cmsText     = "CMS    ,";
+
+cmsText     = "CMS   ";
 cmsTextFont   = 61  
- 
+
 writeExtraText = True
-extraText   = "Work in progress"
+extraText   = "    work in progress"
 extraTextFont = 52 
- 
-lumiTextSize     = 0.6
+
+lumiTextSize     = 0.5
 lumiTextOffset   = 0.2
- 
-cmsTextSize      = 0.75
+
+cmsTextSize      = 0.7
 cmsTextOffset    = 0.1
- 
-relPosX    = 0.045
-relPosY    = 0.035
+
+relPosX    = 0.070
+relPosY    = 0.025
 relExtraDY = 1.2
- 
-extraOverCmsTextSize  = 0.76
- 
-lumi_14TeV = "3000 fb^{-1}"
-lumi_13TeV = "36.6 fb^{-1}"
-lumi_13TeV_2018 = "58.8 fb^{-1}"
+
+extraOverCmsTextSize  = 0.8
+
+#lumi_13TeV = 'Run 2017'
+# lumi_13TeV = 'Run2015 B, C, D'
+#lumi_13TeV = "Run2015B"
+#lumi_13TeV = "Run2015C"
+#lumi_13TeV = "Run2015D"
+# lumi_13TeV = "56.8 pb^{-1}" # Run 2015B 3.8T
+# lumi_13TeV = "64.8 pb^{-1}" # Run 2015B total
+#lumi_13TeV = "7.0 pb^{-1}" # Run 2015A
+lumi_13TeV  = "58.8 fb^{-1}" 
 lumi_8TeV  = "19.7 fb^{-1}" 
 lumi_7TeV  = "5.1 fb^{-1}"
-lumi_sqrtS = ""
- 
+
 drawLogo      = False
-outOfFrame    = False
- 
+
 def CMS_lumi(pad,  iPeriod,  iPosX ):
-    global outOfFrame, relPosX
+    outOfFrame    = False
     if(iPosX/10==0 ): outOfFrame = True
- 
+
     alignY_=3
     alignX_=2
     if( iPosX/10==0 ): alignX_=1
@@ -47,7 +50,7 @@ def CMS_lumi(pad,  iPeriod,  iPosX ):
     if( iPosX/10==2 ): alignX_=2
     if( iPosX/10==3 ): alignX_=3
     align_ = 10*alignX_ + alignY_
- 
+
     H = pad.GetWh()
     W = pad.GetWw()
     l = pad.GetLeftMargin()
@@ -55,9 +58,9 @@ def CMS_lumi(pad,  iPeriod,  iPosX ):
     r = pad.GetRightMargin()
     b = pad.GetBottomMargin()
     e = 0.025
- 
+    
     pad.cd()
- 
+
     lumiText = ""
     if( iPeriod==1 ):
         lumiText += lumi_7TeV
@@ -65,7 +68,7 @@ def CMS_lumi(pad,  iPeriod,  iPosX ):
     elif ( iPeriod==2 ):
         lumiText += lumi_8TeV
         lumiText += " (8 TeV)"
- 
+
     elif( iPeriod==3 ):      
         lumiText = lumi_8TeV 
         lumiText += " (8 TeV)"
@@ -75,10 +78,13 @@ def CMS_lumi(pad,  iPeriod,  iPosX ):
     elif ( iPeriod==4 ):
         lumiText += lumi_13TeV
         lumiText += " (13 TeV)"
+    elif ( iPeriod==5 ):
+        lumiText += lumi_13TeV
+        lumiText += " (13 TeV)"
     elif ( iPeriod==7 ):
         if( outOfFrame ):lumiText += "#scale[0.85]{"
         lumiText += lumi_13TeV 
-        lumiText += " 2017 "
+        lumiText += " (13 TeV)"
         lumiText += " + "
         lumiText += lumi_8TeV 
         lumiText += " (8 TeV)"
@@ -88,52 +94,40 @@ def CMS_lumi(pad,  iPeriod,  iPosX ):
         if( outOfFrame): lumiText += "}"
     elif ( iPeriod==12 ):
         lumiText += "8 TeV"
-    elif ( iPeriod==13 ):
-        if( outOfFrame ):lumiText += "#scale[0.90]{"
-        lumiText += lumi_13TeV_2018
-        lumiText += " (13 TeV)"
-        if( outOfFrame): lumiText += "}"
-    elif ( iPeriod==14 ):
-        if( outOfFrame ):lumiText += "#scale[0.90]{"
-        lumiText += lumi_14TeV
-        lumiText += " (14 TeV, 200 PU)"
-        if( outOfFrame): lumiText += "}"
-    elif ( iPeriod==0 ):
-        lumiText += lumi_sqrtS
- 
-    print lumiText
- 
+            
+    print (lumiText)
+
     latex = rt.TLatex()
     latex.SetNDC()
     latex.SetTextAngle(0)
-    latex.SetTextColor(rt.kBlack)    
- 
+    latex.SetTextColor(1)    
+    
     extraTextSize = extraOverCmsTextSize*cmsTextSize
- 
+    
     latex.SetTextFont(42)
     latex.SetTextAlign(31) 
     latex.SetTextSize(lumiTextSize*t)    
- 
+
     latex.DrawLatex(1-r,1-t+lumiTextOffset*t,lumiText)
- 
+
     if( outOfFrame ):
         latex.SetTextFont(cmsTextFont)
         latex.SetTextAlign(11) 
         latex.SetTextSize(cmsTextSize*t)    
         latex.DrawLatex(l,1-t+lumiTextOffset*t,cmsText)
- 
+  
     pad.cd()
- 
+
     posX_ = 0
     if( iPosX%10<=1 ):
-        posX_ =   l + relPosX*(1-l-r)   # left aligned
+        posX_ =   l + relPosX*(1-l-r)
     elif( iPosX%10==2 ):
-        posX_ =  l + 0.5*(1-l-r)        # centered
+        posX_ =  l + 0.5*(1-l-r)
     elif( iPosX%10==3 ):
-        posX_ =  1-r - relPosX*(1-l-r)  # right aligned
- 
+        posX_ =  1-r - relPosX*(1-l-r)
+
     posY_ = 1-t - relPosY*(1-t-b)
- 
+
     if( not outOfFrame ):
         if( drawLogo ):
             posX_ =   l + 0.045*(1-l-r)*W/H
@@ -163,10 +157,10 @@ def CMS_lumi(pad,  iPeriod,  iPosX ):
         if( iPosX==0):
             posX_ =   l +  relPosX*(1-l-r)
             posY_ =   1-t+lumiTextOffset*t
- 
+
         latex.SetTextFont(extraTextFont)
         latex.SetTextSize(extraTextSize*t)
         latex.SetTextAlign(align_)
         latex.DrawLatex(posX_, posY_, extraText)      
- 
+
     pad.Update()

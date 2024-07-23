@@ -15,8 +15,8 @@ def generate_bdt_cuts(minimum, maximum, median):
         raise ValueError("Minimum, median, and maximum must be ordered as minimum < median < maximum.")
     
     nominal_step = 0.0001
-    step_1 = 0.02
-    step_2 = 0.05
+    step_1 = 0.08
+    step_2 = 0.1
     
     # How close to the median do we have granular steps (decrease to have a smaller region of granularity)
     how_close = 0.5
@@ -52,7 +52,7 @@ if __name__ == "__main__":
 
     command=""
     for bdt_cut in bdt_cuts_all:
-        #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"all\""  + "  --signalnorm=0.00000712772"  + "  --bdt_point=%s"%bdt_cut + ";"
+        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"all\""  + "  --signalnorm=0.00000712772"  + "  --bdt_point=%s"%bdt_cut + ";"
         pass
     
     for bdt_cut in bdt_cuts_taue:
@@ -68,8 +68,8 @@ if __name__ == "__main__":
         pass
         
     for bdt_cut in bdt_cuts_tauhB:
-        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhB\"" + "  --signalnorm=0.00000705558"  + "  --bdt_point=%s"%bdt_cut + " --alt_pdf "  + "  --pdf_switch_point=0.0 " + ";"
-        #pass
+#        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhB\"" + "  --signalnorm=0.00000705558"  + "  --bdt_point=%s"%bdt_cut + " --alt_pdf "  + "  --pdf_switch_point=0.0 " + ";"
+        pass
     
 
     print command

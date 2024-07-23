@@ -6,6 +6,10 @@ import CMS_lumi, tdrstyle
 import subprocess # to execute shell command
 import argparse
 import numpy as np
+import tdrstyle
+from CMSStyle import CMS_lumi
+import os
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--category'       ,  help="Category; [Default: %(default)s] "                               , dest='category'          , default='taumu')
@@ -14,7 +18,7 @@ args = parser.parse_args()
 ROOT.gROOT.SetBatch(ROOT.kTRUE)
  
 # CMS style
-CMS_lumi.cmsText = ""
+CMS_lumi.cmsText = "CMS, work in progress"
 CMS_lumi.extraText = ""
 CMS_lumi.cmsTextSize = 0.65
 CMS_lumi.outOfFrame = True
@@ -28,8 +32,8 @@ def generate_bdt_cuts(minimum, maximum, median):
         raise ValueError("Minimum, median, and maximum must be ordered as minimum < median < maximum.")
     
     nominal_step = 0.0001
-    step_1 = 0.02
-    step_2 = 0.05
+    step_1 = 0.08
+    step_2 = 0.1
     
     # How close to the median do we have granular steps (decrease to have a smaller region of granularity)
     how_close = 0.5
@@ -56,17 +60,15 @@ def executeDataCards(labels,values, category):
         label = "%s" % (value)
 #        combine_command = "combineTool.py -M AsymptoticLimits  -n %s -d %s " % (category+label,'datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
 #        combine_command = "combineTool.py -M BayesianSimple  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 " % (category+label,'datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
-        combine_command = "combineTool.py -M HybridNew --LHCmode LHC-limits  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 " % (category+label,'datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+labe\
-l+'.txt')
+        combine_command = "combineTool.py -M HybridNew --LHCmode LHC-limits  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 -t 5" % (category+label,'datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
+
+
 
         print ""
         print ">>> " + combine_command
-
-        p = subprocess.Popen(combine_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        for line in p.stdout.readlines():
-            print line.rstrip("\n")
+        os.system(combine_command)
         print ">>>   higgsCombine"+category+label+".Asymptotic.mH125.root created"
-        retval = p.wait()
+
  
  
 # GET limits from root file
@@ -171,14 +173,16 @@ def plotUpperLimits(labels,values,prefix,outputLabel):
     median.Draw('Lsame')
     median.Draw()
  
-    CMS_lumi.CMS_lumi(c,13,11)
+#    CMS_lumi.CMS_lumi(c,13,11)
     ROOT.gPad.SetTicks(1,1)
+    CMS_lumi(ROOT.gPad, 5, 0)
+    ROOT.gPad.Update()
     frame.Draw('sameaxis')
  
     x1 = 0.15
     x2 = x1 + 0.24
-    y2 = 0.76
-    y1 = 0.60
+    y2 = 0.86
+    y1 = 0.70
     legend = TLegend(x1,y1,x2,y2)
     legend.SetFillStyle(0)
     legend.SetBorderSize(0)
@@ -211,7 +215,7 @@ def plotUpperLimits(labels,values,prefix,outputLabel):
     if prefix=='all':
         Text = 'Category: Z#rightarrow#tau#tau_{3#mu}'
 
-    latex.DrawLatex(0.57, 0.85, Text)
+    latex.DrawLatex(0.41, 0.85, Text)
     latex.Draw('same') 
     print " "
     c.SaveAs("Limit_scan_Category_"+prefix+outputLabel+".png")
@@ -234,8 +238,8 @@ def main():
     #bdt_cuts = [-0.4,  -0.2,  0.00, 0.1, 0.2, 0.3, 0.31, 0.32, 0.33, 0.34, 0.35, 0.36, 0.37]      # a few entries for test
 
     #categories = ['taue','taumu','tauhA','tauhB','all']
-    categories = ['tauhB']
-    
+    categories = ['all']
+
     bdt_cuts_all = generate_bdt_cuts(0.1, 0.8, 0.55)
     bdt_cuts_taue = generate_bdt_cuts(-0.2, 0.6, 0.2)
     bdt_cuts_taumu = generate_bdt_cuts(0.0, 0.6, 0.4)
