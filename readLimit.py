@@ -60,8 +60,7 @@ def executeDataCards(labels,values, category):
         label = "%s" % (value)
 #        combine_command = "combineTool.py -M AsymptoticLimits  -n %s -d %s " % (category+label,'datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
 #        combine_command = "combineTool.py -M BayesianSimple  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 " % (category+label,'datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
-#        combine_command = "combineTool.py -M HybridNew --LHCmode LHC-limits  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 -t 5 --expectedFromGrid 0.5" % (category+label,'datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
-
+        combine_command = "combineTool.py -M HybridNew --LHCmode LHC-limits  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 -t 5 --expectedFromGrid 0.5" % (category+label,'datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
 
 
         print ""
@@ -69,6 +68,23 @@ def executeDataCards(labels,values, category):
         os.system(combine_command)
         print ">>>   higgsCombine"+category+label+".Asymptotic.mH125.root created"
 
+
+
+def executeDataCards_onCondor(labels,values, category):
+ 
+    for value in values:
+        label = "%s" % (value)
+#        combine_command = "combineTool.py -M AsymptoticLimits  -n %s -d %s " % (category+label,'datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
+#        combine_command = "combineTool.py -M BayesianSimple  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 " % (category+label,'datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
+        combine_command = "combineTool.py -M HybridNew --LHCmode LHC-limits  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 -t 50 --expectedFromGrid 0.5 --job-mode condor --sub-opts='+JobFlavour=\"workday\"'  --task-name HybridTest%s " % (category+label,'datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt',category+label)
+
+        # this on needs to add to submit to condor:
+        # --job-mode condor --sub-opts='+JobFlavour=\"workday\"'  --task-name HybridTest
+        print ""
+        print ">>> " + combine_command
+        os.system(combine_command)
+        print ">>>   higgsCombine"+category+label+".Asymptotic.mH125.root created"
+        
  
  
 # GET limits from root file
@@ -269,8 +285,10 @@ def main():
         print "values", values
         print "labels", labels
         print "prefix", cat
-        executeDataCards(labels,values,cat)
-        plotUpperLimits(labels,values,cat,outputLabel)
+#        executeDataCards(labels,values,cat)
+        executeDataCards_onCondor(labels,values,cat)
+        
+#        plotUpperLimits(labels,values,cat,outputLabel)
  
  
  
