@@ -15,8 +15,8 @@ def generate_bdt_cuts(minimum, maximum, median):
         raise ValueError("Minimum, median, and maximum must be ordered as minimum < median < maximum.")
     
     nominal_step = 0.0001
-    step_1 = 0.08
-    step_2 = 0.1
+    step_1 = 0.02
+    step_2 = 0.05
     
     # How close to the median do we have granular steps (decrease to have a smaller region of granularity)
     how_close = 0.5
@@ -46,30 +46,46 @@ if __name__ == "__main__":
 
     bdt_cuts_all = generate_bdt_cuts(0.1, 0.8, 0.55)
     bdt_cuts_taue = generate_bdt_cuts(-0.2, 0.6, 0.2)
-    bdt_cuts_taumu = generate_bdt_cuts(0.0, 0.6, 0.4)
+    bdt_cuts_taumu = generate_bdt_cuts(-0.1, 0.6, 0.4)
     bdt_cuts_tauhA = generate_bdt_cuts(-0.2, 0.6, 0.2)
-    bdt_cuts_tauhB = generate_bdt_cuts(-0.2, 0.6, 0.2)
+    bdt_cuts_tauhB = generate_bdt_cuts(-0.4, 0.55, 0.2)
+    
+    open('Slopes_all.txt', 'w').close()
+    open('Slopes_taue.txt', 'w').close()
+    open('Slopes_taumu.txt', 'w').close()
+    open('Slopes_tauhA.txt', 'w').close()
+    open('Slopes_tauhB.txt', 'w').close()
 
     command=""
     for bdt_cut in bdt_cuts_all:
-        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"all\""  + "  --signalnorm=0.00000712772"  + "  --bdt_point=%s"%bdt_cut + ";"
+        #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"all\""  + "  --signalnorm=0.00000712772"  + "  --bdt_point=%s"%bdt_cut + ";"
+        
+        #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"all\""  + "  --signalnorm=0.00000712772"  + "  --bdt_point=%s"%bdt_cut + " --alt_pdf "  + "  --pdf_switch_point=0.0 " + "  --fixed_slope=0.0 " + ";"
         pass
     
     for bdt_cut in bdt_cuts_taue:
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taue\""  + "  --signalnorm=0.00000741099"  + "  --bdt_point=%s"%bdt_cut + ";"
-        pass
+        
+        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taue\""  + "  --signalnorm=0.00000741099"  + "  --bdt_point=%s"%bdt_cut + " --alt_pdf "  + "  --pdf_switch_point=-0.05 " + "  --fixed_slope=-0.57 " + ";"
+        #pass
         
     for bdt_cut in bdt_cuts_taumu:
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taumu\"" + "  --signalnorm=0.00000711593"  + "  --bdt_point=%s"%bdt_cut + ";"
-        pass
+        
+        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taumu\"" + "  --signalnorm=0.00000711593"  + "  --bdt_point=%s"%bdt_cut + " --alt_pdf "  + "  --pdf_switch_point=0.23 " + "  --fixed_slope=1.56 " + ";"
+        #pass
     
     for bdt_cut in bdt_cuts_tauhA:
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhA\"" + "  --signalnorm=0.00000705558"  + "  --bdt_point=%s"%bdt_cut + ";"
-        pass
+        
+        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhA\"" + "  --signalnorm=0.00000705558"  + "  --bdt_point=%s"%bdt_cut + " --alt_pdf "  + "  --pdf_switch_point=0.1 " + "  --fixed_slope=2.31 " + ";"
+        #pass
         
     for bdt_cut in bdt_cuts_tauhB:
-#        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhB\"" + "  --signalnorm=0.00000705558"  + "  --bdt_point=%s"%bdt_cut + " --alt_pdf "  + "  --pdf_switch_point=0.0 " + ";"
-        pass
+        #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhB\"" + "  --signalnorm=0.00000705558"  + "  --bdt_point=%s"%bdt_cut + ";"
+        
+        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhB\"" + "  --signalnorm=0.00000705558"  + "  --bdt_point=%s"%bdt_cut + " --alt_pdf "  + "  --pdf_switch_point=-0.15 " + "  --fixed_slope=0.68 " + ";"
+        #pass
     
 
     print command

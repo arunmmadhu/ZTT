@@ -10,7 +10,7 @@ from array import array
 from numpy import *
 import math
 import argparse
-import tdrstyle
+import CMS_lumi, tdrstyle
 from CMSStyle import CMS_lumi
 
 
@@ -30,9 +30,9 @@ parser.add_argument('--blinded'        ,  help="Blind the signal range; [Default
 parser.add_argument('--alt_pdf'          ,  help="Whether to use an alternate PDF, True; [Default: %(default)s] "       , dest='alt_pdf', action='store_true', default = False )
 parser.add_argument('--no-alt_pdf'          ,  help="Whether to use an alternate PDF, False; [Default: %(default)s] "   , dest='alt_pdf', action='store_false' )
 parser.add_argument('--pdf_switch_point' ,  help="Point where you switch to the alternate PDF; [Default: %(default)s] " , dest='pdf_switch_point'  , default = 0.0 )
+parser.add_argument('--fixed_slope' ,  help="Value of the sloped after the point where you switch to the alternate PDF; [Default: %(default)s] " , dest='fixed_slope'  , default = -0.001 )
 
 parser.set_defaults(blinded=True)
-parser.set_defaults(alt_pdf=True)
 
 
 args            = parser.parse_args() 
@@ -55,6 +55,12 @@ ROOT.TH1.SetDefaultSumw2()
 
 # Enable batch mode
 ROOT.gROOT.SetBatch(True)
+
+# CMS style
+CMS_lumi.cmsText = "CMS, work in progress"
+CMS_lumi.extraText = ""
+CMS_lumi.cmsTextSize = 0.65
+CMS_lumi.outOfFrame = True
 tdrstyle.setTDRStyle()
 
 #if len(args.category)>0:
@@ -113,7 +119,15 @@ tripletMass.setRange("SIG",signal_range_lo,signal_range_hi)
 
 
 
-slope = ROOT.RooRealVar('slope', 'slope', -0.001, -10, 10)
+# Fixing a certain value of exponential slope after a certain value of the BDT cut
+#if alt_pdf and args.bdt_point > pdf_switch_point:
+#        myVar.setConstant(True)
+        
+if alt_pdf and float(args.bdt_point) > float(pdf_switch_point):
+        slope = ROOT.RooRealVar('slope', 'slope', float(args.fixed_slope), float(args.fixed_slope), float(args.fixed_slope))
+else:
+        slope = ROOT.RooRealVar('slope', 'slope', float(args.fixed_slope), -100, 100)
+
 expo  = ROOT.RooExponential('bkg_expo', 'bkg_expo', tripletMass, slope)
 
 flat_poly  = ROOT.RooPolynomial('bkg_flat_poly', 'bkg_flat_poly', tripletMass)
@@ -121,11 +135,13 @@ flat_poly  = ROOT.RooPolynomial('bkg_flat_poly', 'bkg_flat_poly', tripletMass)
 nbkg = ROOT.RooRealVar('nbkg', 'nbkg', 1000, 0, 500000)
 
 #Switching to flat polynomial after a certain point
+#Redacted
 
-if alt_pdf and args.bdt_point > pdf_switch_point:
-        pdfmodel = ROOT.RooAddPdf('bkg_flat_expo', 'bkg_flat_expo', ROOT.RooArgList(flat_poly), ROOT.RooArgList(nbkg))
-else:
-        pdfmodel = ROOT.RooAddPdf('bkg_extended_expo', 'bkg_extended_expo', ROOT.RooArgList(expo), ROOT.RooArgList(nbkg))
+#if alt_pdf and args.bdt_point > pdf_switch_point:
+#        pdfmodel = ROOT.RooAddPdf('bkg_flat_expo', 'bkg_flat_expo', ROOT.RooArgList(flat_poly), ROOT.RooArgList(nbkg))
+#else:
+#        pdfmodel = ROOT.RooAddPdf('bkg_extended_expo', 'bkg_extended_expo', ROOT.RooArgList(expo), ROOT.RooArgList(nbkg))
+pdfmodel = ROOT.RooAddPdf('bkg_extended_expo', 'bkg_extended_expo', ROOT.RooArgList(expo), ROOT.RooArgList(nbkg))
 
 
 mean  = ROOT.RooRealVar('mean' , 'mean' ,   1.78, 1.6, 1.9)
@@ -278,6 +294,8 @@ latex.SetTextFont(42)
 latex.SetTextAlign(31)
 latex.DrawLatex(0.57, 0.85, 'mass_fit%s_%dbins_bdtcut%s'%(args.category, nbins, args.bdt_point))
 
+CMS_lumi(ROOT.gPad, 5, 0)
+ROOT.gPad.Update()
 
 ROOT.gPad.SaveAs('plots/%s/massfit_%s_%dbins_bdtcut%s.png'%(args.category,args.category, nbins, args.bdt_point))
 
@@ -319,6 +337,10 @@ if alt_pdf and args.bdt_point > pdf_switch_point:
         workspace.factory("Polynomial::bkg(tripletMass, a0%s[%f])" %(args.category,1.0) ) 
 else:
         workspace.factory("Exponential::bkg(tripletMass, a0%s[%f,%f,%f])" %(args.category, slope.getVal(), slope.getError(), slope.getError()) ) 
+
+
+with open("Slopes_%s"%(args.category)+".txt", "a") as f:
+   f.write("Cut: %s slopes: %s n_sideband: %s expected_bkg: %s \n"%(args.bdt_point,slope.getVal(),nbkg.getVal()*SB_integral,nbkg.getVal()*SG_integral if nbkg.getVal()*SG_integral > 0.001 else 0.001))
 
 
 #workspace.factory('cb_fraction[%f]'  % cb_fraction.getVal())
