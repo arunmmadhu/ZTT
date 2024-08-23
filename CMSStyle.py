@@ -5,11 +5,11 @@ import ROOT as rt
 #   Translated in Python by: Joshua Hardenbrook (Princeton)
 #
 
-cmsText     = "CMS   ";
+cmsText     = "CMS";
 cmsTextFont   = 61  
 
 writeExtraText = True
-extraText   = "    work in progress"
+extraText   = "work in progress"
 extraTextFont = 52 
 
 lumiTextSize     = 0.5

@@ -60,8 +60,8 @@ if __name__ == "__main__":
     for bdt_cut in bdt_cuts_all:
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"all\""  + "  --signalnorm=0.00000712772"  + "  --bdt_point=%s"%bdt_cut + ";"
         
-        #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"all\""  + "  --signalnorm=0.00000712772"  + "  --bdt_point=%s"%bdt_cut + " --alt_pdf "  + "  --pdf_switch_point=0.0 " + "  --fixed_slope=0.0 " + ";"
-        pass
+        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"all\""  + "  --signalnorm=0.00000712772"  + "  --bdt_point=%s"%bdt_cut + " --alt_pdf "  + "  --pdf_switch_point=0.61 " + "  --fixed_slope=-0.25 " + ";"
+        #pass
     
     for bdt_cut in bdt_cuts_taue:
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taue\""  + "  --signalnorm=0.00000741099"  + "  --bdt_point=%s"%bdt_cut + ";"
@@ -87,6 +87,5 @@ if __name__ == "__main__":
         command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhB\"" + "  --signalnorm=0.00000705558"  + "  --bdt_point=%s"%bdt_cut + " --alt_pdf "  + "  --pdf_switch_point=-0.15 " + "  --fixed_slope=0.68 " + ";"
         #pass
     
-
     print command
     os.system(command)
