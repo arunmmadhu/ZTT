@@ -13,7 +13,10 @@ import os
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--category'       ,  help="Category; [Default: %(default)s] "                               , dest='category'          , default='taumu')
+parser.add_argument('--inputdir'       ,  help="Output directory; [Default: %(default)s] "                       , dest='inputdir'          , default='fixed_slope')
 args = parser.parse_args()
+
+input_dir  = args.inputdir
 
 ROOT.gROOT.SetBatch(ROOT.kTRUE)
  
@@ -32,8 +35,8 @@ def generate_bdt_cuts(minimum, maximum, median):
         raise ValueError("Minimum, median, and maximum must be ordered as minimum < median < maximum.")
     
     nominal_step = 0.0001
-    step_1 = 0.08
-    step_2 = 0.1
+    step_1 = 0.02
+    step_2 = 0.05
     
     # How close to the median do we have granular steps (decrease to have a smaller region of granularity)
     how_close = 0.5
@@ -58,9 +61,9 @@ def executeDataCards(labels,values, category):
  
     for value in values:
         label = "%s" % (value)
-        combine_command = "combineTool.py -M AsymptoticLimits  -n %s -d %s " % (category+label,'datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
-#        combine_command = "combineTool.py -M BayesianSimple  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 " % (category+label,'datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
-#        combine_command = "combineTool.py -M HybridNew --LHCmode LHC-limits  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 -t 5 --expectedFromGrid 0.5" % (category+label,'datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
+        combine_command = "combineTool.py -M AsymptoticLimits  -n %s -d %s --cl 0.90 " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
+#        combine_command = "combineTool.py -M BayesianSimple  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
+#        combine_command = "combineTool.py -M HybridNew --LHCmode LHC-limits  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 -t 5 --expectedFromGrid 0.5" % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
 
 
         print ""
@@ -74,9 +77,9 @@ def executeDataCards_onCondor(labels,values, category):
  
     for value in values:
         label = "%s" % (value)
-#        combine_command = "combineTool.py -M AsymptoticLimits  -n %s -d %s " % (category+label,'datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
-#        combine_command = "combineTool.py -M BayesianSimple  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 " % (category+label,'datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
-        combine_command = "combineTool.py -M HybridNew --LHCmode LHC-limits  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 -t 50 --expectedFromGrid 0.5 --job-mode condor --sub-opts='+JobFlavour=\"workday\"'  --task-name HybridTest%s " % (category+label,'datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt',category+label)
+        combine_command = "combineTool.py -M AsymptoticLimits  -n %s -d %s --cl 0.90  --job-mode condor --sub-opts='+JobFlavour=\"workday\"'  --task-name HybridTest%s " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt',category+label)
+#        combine_command = "combineTool.py -M BayesianSimple  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
+#        combine_command = "combineTool.py -M HybridNew --LHCmode LHC-limits  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 -t 50 --expectedFromGrid 0.5 --job-mode condor --sub-opts='+JobFlavour=\"workday\"'  --task-name HybridTest%s " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt',category+label)
 
         # this on needs to add to submit to condor:
         # --job-mode condor --sub-opts='+JobFlavour=\"workday\"'  --task-name HybridTest
@@ -254,13 +257,13 @@ def main():
     #bdt_cuts = [-0.4,  -0.2,  0.00, 0.1, 0.2, 0.3, 0.31, 0.32, 0.33, 0.34, 0.35, 0.36, 0.37]      # a few entries for test
 
     categories = ['taue','taumu','tauhA','tauhB','all']
-    #categories = ['all']
+    #categories = ['taue']
 
     bdt_cuts_all = generate_bdt_cuts(0.1, 0.8, 0.55)
     bdt_cuts_taue = generate_bdt_cuts(-0.2, 0.6, 0.2)
-    bdt_cuts_taumu = generate_bdt_cuts(0.0, 0.6, 0.4)
+    bdt_cuts_taumu = generate_bdt_cuts(-0.1, 0.6, 0.4)
     bdt_cuts_tauhA = generate_bdt_cuts(-0.2, 0.6, 0.2)
-    bdt_cuts_tauhB =  generate_bdt_cuts(-0.2, 0.6, 0.2)
+    bdt_cuts_tauhB = generate_bdt_cuts(-0.4, 0.55, 0.2)
     
     bdt_cut_dict = {
     'all': bdt_cuts_all,
@@ -285,10 +288,10 @@ def main():
         print "values", values
         print "labels", labels
         print "prefix", cat
-        executeDataCards(labels,values,cat)
+#        executeDataCards(labels,values,cat)
 #        executeDataCards_onCondor(labels,values,cat)
         
-#        plotUpperLimits(labels,values,cat,outputLabel)
+        plotUpperLimits(labels,values,cat,outputLabel)
  
  
  

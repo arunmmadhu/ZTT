@@ -27,10 +27,11 @@ parser.add_argument('--signal_range_hi',  help="Signal mass window high edge; [D
 parser.add_argument('--fit_range_lo'   ,  help="Overal fit range, low edge; [Default: %(default)s] "             , dest='fit_range_lo'      , default=1.60)
 parser.add_argument('--fit_range_hi'   ,  help="Overal fit range, high edge; [Default: %(default)s] "            , dest='fit_range_hi'      , default=2.00)
 parser.add_argument('--blinded'        ,  help="Blind the signal range; [Default: %(default)s] "                 , dest='blinded'           , action='store_true', default = False )
-parser.add_argument('--alt_pdf'          ,  help="Whether to use an alternate PDF, True; [Default: %(default)s] "       , dest='alt_pdf', action='store_true', default = False )
-parser.add_argument('--no-alt_pdf'          ,  help="Whether to use an alternate PDF, False; [Default: %(default)s] "   , dest='alt_pdf', action='store_false' )
+parser.add_argument('--alt_pdf'        ,  help="Whether to use an alternate PDF, True; [Default: %(default)s] "  , dest='alt_pdf', action='store_true', default = False )
+parser.add_argument('--no-alt_pdf'     ,  help="Whether to use an alternate PDF, False; [Default: %(default)s] " , dest='alt_pdf', action='store_false' )
 parser.add_argument('--pdf_switch_point' ,  help="Point where you switch to the alternate PDF; [Default: %(default)s] " , dest='pdf_switch_point'  , default = 0.0 )
-parser.add_argument('--fixed_slope' ,  help="Value of the sloped after the point where you switch to the alternate PDF; [Default: %(default)s] " , dest='fixed_slope'  , default = -0.001 )
+parser.add_argument('--fixed_slope'      ,  help="Value of the sloped after the point where you switch to the alternate PDF; [Default: %(default)s] " , dest='fixed_slope'  , default = -0.001 )
+parser.add_argument('--outdir'           ,  help="Output directory; [Default: %(default)s] "                     , dest='outdir'            , default='unfixed_slope')
 
 parser.set_defaults(blinded=True)
 
@@ -46,6 +47,7 @@ fit_range_hi    = double(args.fit_range_hi)
 minitree        = args.datafile
 alt_pdf         = args.alt_pdf
 pdf_switch_point= args.pdf_switch_point
+output_dir      = args.outdir
 
 print "selection: ", selection
 print "bdtprefix: ", args.bdt_point
@@ -219,8 +221,10 @@ gaus.plotOn(frame, ROOT.RooFit.LineColor(ROOT.kRed ))
 
 
 frame.Draw()
-cmd1 = 'mkdir plots; mkdir datacards; mkdir workspaces;'
-cmd2 = 'mkdir plots/%s;'%args.category + 'mkdir datacards/%s;'%args.category + 'mkdir workspaces/%s;'%args.category
+cmd0 = 'mkdir '+output_dir+';'
+cmd1 = 'mkdir '+output_dir+'/plots; mkdir '+output_dir+'/datacards; mkdir '+output_dir+'/workspaces;'
+cmd2 = 'mkdir '+output_dir+'/plots/%s;'%args.category + 'mkdir '+output_dir+'/datacards/%s;'%args.category + 'mkdir '+output_dir+'/workspaces/%s;'%args.category
+os.system(cmd0)
 os.system(cmd1)
 os.system(cmd2)
 latex = ROOT.TLatex()
@@ -230,7 +234,7 @@ latex.SetTextFont(42)
 latex.SetTextAlign(31)
 latex.DrawLatex(0.57, 0.85, 'taushape%s_%dbins'%(args.category, nbins))
 
-#ROOT.gPad.SaveAs('plots/%s/taushape%s_%dbins_bdtcut%s.png'%(args.category,args.category, nbins, args.bdt_point))
+#ROOT.gPad.SaveAs(output_dir+'/plots/%s/taushape%s_%dbins_bdtcut%s.png'%(args.category,args.category, nbins, args.bdt_point))
 
 
 DataSelector      = ROOT.RooFormulaVar('DataSelector', 'DataSelector', selection + ' & isMC == 0', ROOT.RooArgList(variables))
@@ -297,10 +301,10 @@ latex.DrawLatex(0.57, 0.85, 'mass_fit%s_%dbins_bdtcut%s'%(args.category, nbins, 
 CMS_lumi(ROOT.gPad, 5, 0)
 ROOT.gPad.Update()
 
-ROOT.gPad.SaveAs('plots/%s/massfit_%s_%dbins_bdtcut%s.png'%(args.category,args.category, nbins, args.bdt_point))
+ROOT.gPad.SaveAs(output_dir+'/plots/%s/massfit_%s_%dbins_bdtcut%s.png'%(args.category,args.category, nbins, args.bdt_point))
 
 
-output = ROOT.TFile.Open('workspaces/%s/workspace%s_bdtcut%s.root' %(args.category,args.category, args.bdt_point), 'recreate')
+output = ROOT.TFile.Open(output_dir+'/workspaces/%s/workspace%s_bdtcut%s.root' %(args.category,args.category, args.bdt_point), 'recreate')
 seldata = ROOT.RooDataSet('data', 'data', tree, variables, DataSelector)
 selsignal = ROOT.RooDataSet('mc', 'mc', tree, variables, MCSelector)
 
@@ -373,7 +377,7 @@ output.Close()
 
 
 # make  the datacard
-with open('datacards/%s/ZTT_T3mu_%s_bdtcut%s.txt' %(args.category,args.category,args.bdt_point), 'w') as card:
+with open(output_dir+'/datacards/%s/ZTT_T3mu_%s_bdtcut%s.txt' %(args.category,args.category,args.bdt_point), 'w') as card:
    card.write(
 '''
 # ZTT
