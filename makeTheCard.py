@@ -125,7 +125,7 @@ tripletMass.setRange("SIG",signal_range_lo,signal_range_hi)
 #if alt_pdf and args.bdt_point > pdf_switch_point:
 #        myVar.setConstant(True)
         
-if alt_pdf and float(args.bdt_point) > float(pdf_switch_point):
+if alt_pdf and (float(args.bdt_point) > float(pdf_switch_point)):
         slope = ROOT.RooRealVar('slope', 'slope', float(args.fixed_slope), float(args.fixed_slope), float(args.fixed_slope))
 else:
         slope = ROOT.RooRealVar('slope', 'slope', float(args.fixed_slope), -100, 100)

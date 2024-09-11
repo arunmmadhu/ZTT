@@ -13,7 +13,7 @@ import os
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--category'       ,  help="Category; [Default: %(default)s] "                               , dest='category'          , default='taumu')
-parser.add_argument('--inputdir'       ,  help="Output directory; [Default: %(default)s] "                       , dest='inputdir'          , default='fixed_slope')
+parser.add_argument('--inputdir'       ,  help="Output directory; [Default: %(default)s] "                       , dest='inputdir'          , default='unfixed_slope')
 args = parser.parse_args()
 
 input_dir  = args.inputdir
@@ -35,24 +35,27 @@ def generate_bdt_cuts(minimum, maximum, median):
         raise ValueError("Minimum, median, and maximum must be ordered as minimum < median < maximum.")
     
     nominal_step = 0.0001
-    step_1 = 0.02
-    step_2 = 0.05
+    step_1 = 0.04
+    step_2 = 0.06
     
     # How close to the median do we have granular steps (decrease to have a smaller region of granularity)
     how_close = 0.5
     
     # Generate more points around the median
     left_side_ll = np.arange(minimum, round((minimum*how_close+median*(1-how_close)), 2) , step_2)
-    left_side_l = np.arange(round((minimum*how_close+median*(1-how_close)), 2), median, step_1)
-    right_side_r = np.arange(median, round((maximum*how_close+median*(1-how_close)), 2), step_1)
+    #left_side_l = np.arange(round((minimum*how_close+median*(1-how_close)), 2), median, step_1)
+    #right_side_r = np.arange(median, round((maximum*how_close+median*(1-how_close)), 2), step_1)
+    center = np.arange(round((minimum*how_close+median*(1-how_close)), 2), round((maximum*how_close+median*(1-how_close)), 2), step_1)
     right_side_rr = np.arange(round((maximum*how_close+median*(1-how_close)), 2), maximum + nominal_step, step_2)
     
     # Combine and round to two decimal places
-    bdt_cuts = np.concatenate((left_side_ll, left_side_l, right_side_r, right_side_rr))
+    #bdt_cuts = np.concatenate((left_side_ll, left_side_l, right_side_r, right_side_rr))
+    bdt_cuts = np.concatenate((left_side_ll, center, right_side_rr))
     bdt_cuts = np.round(bdt_cuts, 2)
     bdt_cuts = np.unique(bdt_cuts)
     
     return bdt_cuts.tolist()
+
  
 
  
@@ -63,7 +66,7 @@ def executeDataCards(labels,values, category):
         label = "%s" % (value)
         combine_command = "combineTool.py -M AsymptoticLimits  -n %s -d %s --cl 0.90 " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
 #        combine_command = "combineTool.py -M BayesianSimple  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
-#        combine_command = "combineTool.py -M HybridNew --LHCmode LHC-limits  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 -t 5 --expectedFromGrid 0.5" % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
+#        combine_command = "combineTool.py -M HybridNew --LHCmode LHC-limits  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 -t 10 --expectedFromGrid 0.5" % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
 
 
         print ""
@@ -79,7 +82,7 @@ def executeDataCards_onCondor(labels,values, category):
         label = "%s" % (value)
         combine_command = "combineTool.py -M AsymptoticLimits  -n %s -d %s --cl 0.90  --job-mode condor --sub-opts='+JobFlavour=\"workday\"'  --task-name HybridTest%s " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt',category+label)
 #        combine_command = "combineTool.py -M BayesianSimple  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
-#        combine_command = "combineTool.py -M HybridNew --LHCmode LHC-limits  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 -t 50 --expectedFromGrid 0.5 --job-mode condor --sub-opts='+JobFlavour=\"workday\"'  --task-name HybridTest%s " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt',category+label)
+#        combine_command = "combineTool.py -M HybridNew --LHCmode LHC-limits  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 -t 10 --expectedFromGrid 0.5 --job-mode condor --sub-opts='+JobFlavour=\"workday\"'  --task-name HybridTest%s " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt',category+label)
 
         # this on needs to add to submit to condor:
         # --job-mode condor --sub-opts='+JobFlavour=\"workday\"'  --task-name HybridTest
@@ -117,15 +120,16 @@ def plotUpperLimits(labels,values,prefix,outputLabel):
     text_limits=open("TextLimits%s"%(prefix)+outputLabel+".txt","w")
     for i in range(N):
         file_name = "higgsCombine"+prefix+labels[i]+".AsymptoticLimits.mH120.root"
+#        file_name = "higgsCombine"+prefix+labels[i]+".HybridNew.mH120.123456.quant0.500.root"
         print "filename:  ", file_name
         limit = getLimits(file_name)
-        up2s.append(limit[4])
+#        up2s.append(limit[4])
         upm.append(limit[2])
-        yellow.SetPoint(    i,    values[i], limit[4]) # + 2 sigma
-        green.SetPoint(     i,    values[i], limit[3]) # + 1 sigma
+#        yellow.SetPoint(    i,    values[i], limit[4]) # + 2 sigma
+#        green.SetPoint(     i,    values[i], limit[3]) # + 1 sigma
         median.SetPoint(    i,    values[i], limit[2]) #    median
-        green.SetPoint(  2*N-1-i, values[i], limit[1]) # - 1 sigma
-        yellow.SetPoint( 2*N-1-i, values[i], limit[0]) # - 2 sigma
+#        green.SetPoint(  2*N-1-i, values[i], limit[1]) # - 1 sigma
+#        yellow.SetPoint( 2*N-1-i, values[i], limit[0]) # - 2 sigma
         text_limits.write("bdt %.2f     median exp %.2f\n"%(values[i],limit[2]))
 
     W = 800
@@ -159,7 +163,7 @@ def plotUpperLimits(labels,values,prefix,outputLabel):
     frame.GetYaxis().SetTitleOffset(0.9)
     frame.GetXaxis().SetNdivisions(508)
     frame.GetYaxis().CenterTitle(False)
-    frame.GetYaxis().SetTitle("B(#tau #rightarrow #mu#mu#mu) (10^{-7})")
+    frame.GetYaxis().SetTitle("B(#tau #rightarrow #mu#mu#mu) UL (10^{-7})")
     frame.GetXaxis().SetTitle("MVA cut value")
 
 
@@ -207,7 +211,8 @@ def plotUpperLimits(labels,values,prefix,outputLabel):
     legend.SetBorderSize(0)
     legend.SetTextSize(0.041)
     legend.SetTextFont(42)
-    legend.AddEntry(median, "Asymptotic CL_{s} expected",'L')
+    legend.AddEntry(median, "Asymptotic CL_{s} expected upper limit",'L')
+#    legend.AddEntry(median, "HybridNew CL_{s} expected upper limit",'L')
 #    legend.AddEntry(green, "#pm 1 std. deviation",'f')
 #    legend.AddEntry(yellow,"#pm 2 std. deviation",'f')
 
@@ -234,7 +239,8 @@ def plotUpperLimits(labels,values,prefix,outputLabel):
     if prefix=='all':
         Text = 'Category: Z#rightarrow#tau#tau_{3#mu}'
 
-    latex.DrawLatex(0.41, 0.85, Text)
+    latex.SetTextAlign(1)
+    latex.DrawLatex(0.15, 0.85, Text)
     latex.Draw('same') 
     print " "
     c.SaveAs("Limit_scan_Category_"+prefix+outputLabel+".png")
