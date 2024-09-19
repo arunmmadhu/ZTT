@@ -414,9 +414,9 @@ rate                                   {signal:.4f}        {bkg:.4f}
 --------------------------------------------------------------------------------
 lumi              lnN                       1.025               -
 Zxs               lnN                       1.0188              -
-BrTauX            lnN                       1.0{br_taux}       -
-bkgNorm_{cat}     rateParam          category{cat}        background      1. 
-a0{cat}           param             {slopeval:.4f}    {slopeerr:.4f}
+BrTauX            lnN                       1.0{br_taux}        -
+bkgNorm_{cat}     flatParam
+a0{cat}           param             {slopeval:.4f}        {slopeerr:.4f}
 --------------------------------------------------------------------------------
 '''.format(
          cat      = args.category,
