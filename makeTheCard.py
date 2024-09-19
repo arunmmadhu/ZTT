@@ -385,6 +385,9 @@ imax 1 number of bins
 jmax * number of processes minus 1
 kmax * number of nuisance parameters
 --------------------------------------------------------------------------------
+shapes background    category{cat}       ../../workspaces/{wdir}/workspace{cat}_bdtcut{bdt}.root t3m_shapes:bkg
+shapes signal        category{cat}       ../../workspaces/{wdir}/workspace{cat}_bdtcut{bdt}.root t3m_shapes:sig
+shapes data_obs      category{cat}       ../../workspaces/{wdir}/workspace{cat}_bdtcut{bdt}.root t3m_shapes:data_obs
 --------------------------------------------------------------------------------
 bin               category{cat}
 observation       {obs:d}
@@ -396,7 +399,10 @@ process                                 0                   1
 rate                                   {signal:.4f}        {bkg:.4f}
 --------------------------------------------------------------------------------
 lumi              lnN                       1.025               -
-
+Zxs               lnN                       1.021               -
+BrTauToMu         lnN                       1.04                -
+bkgNorm_{cat}     rateParam          category{cat}        background      1. 
+a0{cat}           param             {slopeval:.4f}    {slopeerr:.4f}
 --------------------------------------------------------------------------------
 '''.format(
          cat      = args.category,
@@ -405,6 +411,8 @@ lumi              lnN                       1.025               -
          obs      = fulldata.numEntries() if blinded==False else -1,
          signal   = SignalIntegral,
          bkg      = nbkg.getVal()*SG_integral if nbkg.getVal()*SG_integral > 0.001 else 0.001,
+        slopeval = slope.getVal(), 
+         slopeerr = slope.getError(),
          )
 )
 
