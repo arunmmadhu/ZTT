@@ -411,7 +411,7 @@ a0{cat}           param             {slopeval:.4f}    {slopeerr:.4f}
          obs      = fulldata.numEntries() if blinded==False else -1,
          signal   = SignalIntegral,
          bkg      = nbkg.getVal()*SG_integral if nbkg.getVal()*SG_integral > 0.001 else 0.001,
-        slopeval = slope.getVal(), 
+         slopeval = slope.getVal(), 
          slopeerr = slope.getError(),
          )
 )

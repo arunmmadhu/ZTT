@@ -66,7 +66,7 @@ def executeDataCards(labels,values, category):
         label = "%s" % (value)
         combine_command = "combineTool.py -M AsymptoticLimits  -n %s -d %s --cl 0.90 " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
 #        combine_command = "combineTool.py -M BayesianSimple  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
-#        combine_command = "combineTool.py -M HybridNew --LHCmode LHC-limits  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 -t 10 --expectedFromGrid 0.5" % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
+#        combine_command = "combineTool.py -M HybridNew --LHCmode LHC-limits  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 T -25 --expectedFromGrid 0.5" % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
 
 
         print ""
@@ -80,9 +80,9 @@ def executeDataCards_onCondor(labels,values, category):
  
     for value in values:
         label = "%s" % (value)
-        combine_command = "combineTool.py -M AsymptoticLimits  -n %s -d %s --cl 0.90  --job-mode condor --sub-opts='+JobFlavour=\"workday\"'  --task-name HybridTest%s " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt',category+label)
+#        combine_command = "combineTool.py -M AsymptoticLimits  -n %s -d %s --cl 0.90  --job-mode condor --sub-opts='+JobFlavour=\"workday\"'  --task-name HybridTest%s " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt',category+label)
 #        combine_command = "combineTool.py -M BayesianSimple  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
-#        combine_command = "combineTool.py -M HybridNew --LHCmode LHC-limits  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 -t 10 --expectedFromGrid 0.5 --job-mode condor --sub-opts='+JobFlavour=\"workday\"'  --task-name HybridTest%s " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt',category+label)
+        combine_command = "combineTool.py -M HybridNew --LHCmode LHC-limits  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 -T 25 --expectedFromGrid 0.5 --job-mode condor --sub-opts='+JobFlavour=\"workday\"'  --task-name HybridTest%s " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt',category+label)
 
         # this on needs to add to submit to condor:
         # --job-mode condor --sub-opts='+JobFlavour=\"workday\"'  --task-name HybridTest
@@ -295,9 +295,9 @@ def main():
         print "labels", labels
         print "prefix", cat
 #        executeDataCards(labels,values,cat)
-#        executeDataCards_onCondor(labels,values,cat)
+        executeDataCards_onCondor(labels,values,cat)
         
-        plotUpperLimits(labels,values,cat,outputLabel)
+#        plotUpperLimits(labels,values,cat,outputLabel)
  
  
  
