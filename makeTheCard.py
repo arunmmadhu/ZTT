@@ -344,7 +344,7 @@ else:
 
 
 with open("Slopes_%s"%(args.category)+".txt", "a") as f:
-   f.write("Cut: %s slopes: %s slope_error: %s n_sideband: %s expected_bkg: %s \n"%(args.bdt_point,slope.getVal(),slope.getError(),nbkg.getVal()*SB_integral,nbkg.getVal()*SG_integral if nbkg.getVal()*SG_integral > 0.001 else 0.001))
+   f.write("Cut: %s slopes: %s n_sideband: %s expected_bkg: %s \n"%(args.bdt_point,slope.getVal(),nbkg.getVal()*SB_integral,nbkg.getVal()*SG_integral if nbkg.getVal()*SG_integral > 0.001 else 0.001))
 
 
 #workspace.factory('cb_fraction[%f]'  % cb_fraction.getVal())
@@ -374,7 +374,6 @@ getattr(workspace,'import')(mc)
 workspace.Write()
 output.Close()
 
-
 br = ''
 if args.category=='taue':
         br = '022'#0.04/17.82
@@ -390,7 +389,6 @@ if args.category=='tauhB':
         
 if args.category=='all':
         br = '000'
-#Zxs: 37.8/2006
 
 # make  the datacard
 with open(output_dir+'/datacards/%s/ZTT_T3mu_%s_bdtcut%s.txt' %(args.category,args.category,args.bdt_point), 'w') as card:
@@ -416,8 +414,9 @@ rate                                   {signal:.4f}        {bkg:.4f}
 --------------------------------------------------------------------------------
 lumi              lnN                       1.025               -
 Zxs               lnN                       1.0188              -
-BrTauX            lnN                       1.0{br_taux}               -
-
+BrTauX            lnN                       1.0{br_taux}       -
+bkgNorm_{cat}     rateParam          category{cat}        background      1. 
+a0{cat}           param             {slopeval:.4f}    {slopeerr:.4f}
 --------------------------------------------------------------------------------
 '''.format(
          cat      = args.category,
@@ -426,6 +425,8 @@ BrTauX            lnN                       1.0{br_taux}               -
          obs      = fulldata.numEntries() if blinded==False else -1,
          signal   = SignalIntegral,
          bkg      = nbkg.getVal()*SG_integral if nbkg.getVal()*SG_integral > 0.001 else 0.001,
+         slopeval = slope.getVal(), 
+         slopeerr = slope.getError(),
          br_taux  = br,
          )
 )
