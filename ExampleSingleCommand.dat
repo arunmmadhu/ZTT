@@ -1,6 +1,16 @@
 ./makeTheCard.py --selection='(abs(dimu_OS1 - 1.020)>0.025)&(abs(dimu_OS2 - 1.020)>0.025)&abs(dimu_OS1 - 0.782)>0.04&fabs(dimu_OS2 - 1.020)>0.04 &bdt_cv > 0.0' --category="taumu"  --signalnorm=0.001  --bdt_point=0.0;
 
 
+
+combineTool.py -M AsymptoticLimits -n Huy -d unfixed_slope/datacards/all/ZTT_T3mu_all_bdtcut0.53.txt
+combineTool.py -M HybridNew --LHCmode LHC-limits  -n all0.55 -d datacards/all/ZTT_T3mu_all_bdtcut0.55.txt
 combineTool.py -M HybridNew --LHCmode LHC-limits  -n all0.55 -d datacards/all/ZTT_T3mu_all_bdtcut0.55.txt --rMin 0 --rMax 50 --cl 0.90 -t 5 --expectedFromGrid 0.5
  combineTool.py -M HybridNew --LHCmode LHC-limits  -n all0.55 -d datacards/all/ZTT_T3mu_all_bdtcut0.55.txt --rMin 0 --rMax 50 --cl 0.90 -t 5 --expectedFromGrid 0.5 --job-mode condor --task-name HybridTest
+
+
+
+text2workspace.py /afs/cern.ch/work/c/cherepan/ZTT3/ZTT3/ZTT/unfixed_slope/datacards/taumu/ZTT_T3mu_taumu_bdtcut0.39.txt -m 1.777 -o ZTT_T3mu_taumu_bdtcut0.39.root --dataMapName data_obs --X-assign-flatParam-prior
+
+combine -M HybridNew ZTT_T3mu_taumu_bdtcut0.39.root --expectedFromGrid 0.5 --LHCmode LHC-limits --X-rtd MINIMIZER_freezeDisassociatedParams -T 10000 -C 0.9  --plot='limit_combined_hybridnew_0.9.pdf' --rMin 0 --rMax 10  --rule CLs
+
 

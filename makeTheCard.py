@@ -415,7 +415,7 @@ rate                                   {signal:.4f}        {bkg:.4f}
 lumi              lnN                       1.025               -
 Zxs               lnN                       1.0188              -
 BrTauX            lnN                       1.0{br_taux}        -
-bkgNorm_{cat}     rateParam  category{cat} background 1.
+bkgNorm_{cat}     rateParam  category{cat} background 1. [0.99,1.01]
 a0{cat}           param             {slopeval:.4f}        {slopeerr:.4f}
 --------------------------------------------------------------------------------
 '''.format(
@@ -424,7 +424,7 @@ a0{cat}           param             {slopeval:.4f}        {slopeerr:.4f}
          wdir     = args.category,
          obs      = fulldata.numEntries() if blinded==False else -1,
          signal   = SignalIntegral,
-         bkg      = nbkg.getVal()*SG_integral if nbkg.getVal()*SG_integral > 0.001 else 0.001,
+         bkg      = nbkg.getVal() if nbkg.getVal() >0 else 0.001,#*SG_integral if nbkg.getVal()*SG_integral > 0.001 else 0.001,
          slopeval = slope.getVal(), 
          slopeerr = slope.getError(),
          br_taux  = br,
