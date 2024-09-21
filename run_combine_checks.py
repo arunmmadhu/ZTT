@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+
+
 from __future__ import print_function
 import os
 import sys
@@ -12,7 +15,7 @@ This script runs the following checks on the specified datacard:
 Details of the commands in the code.''')
 parser.add_argument('-d', '--datacard', required=True           , help='path to the combine datacard to open' )
 parser.add_argument('-p', '--pranges' , default=''              , help='parameter ranges to use in the form "par1=min,max:par2=min,max"')
-parser.add_argument('-e', '--expected', default='0'             , help='expected signal strength for the Asimov generation')
+parser.add_argument('-e', '--expected', default='1'             , help='expected signal strength for the Asimov generation')
 parser.add_argument('-l', '--label'   , default='combine_checks', help='used to label the output directory')
 parser.add_argument('-r', '--rmin'    , default='0'             , help='lower boundary for r')
 parser.add_argument('-R', '--rmax'    , default='10'            , help='higher boundary for r')
@@ -178,7 +181,10 @@ CMD_TESTSTAT = '\n'.join([
 CMD_LIMIT = '\n'.join([
   'text2workspace.py {DAT} -m 1.777 -o {WSP} --dataMapName data_obs --X-assign-flatParam-prior',
 #  'text2workspace.py {DAT} -m 1.777 -o {WSP} -D data_obs',
-  "combine -M HybridNew {WSP} {BLI} {MOD} --X-rtd MINIMIZER_freezeDisassociatedParams -T {TOY} -C {CL}  --plot='limit_combined_hybridnew_{CL}.pdf' --rMin {r} --rMax {R} {PAR} --rule {RL}"
+#  "combine -M HybridNew {WSP} {BLI} {MOD} --X-rtd MINIMIZER_freezeDisassociatedParams -T {TOY} -C {CL}  --plot='limit_combined_hybridnew_{CL}.pdf' --rMin {r} --rMax {R} {PAR} --rule {RL}"
+#  "combine -M HybridNew {WSP} {BLI} {MOD} --X-rtd MINIMIZER_freezeDisassociatedParams -T {TOY} -C {CL}  --plot='limit_combined_hybridnew_{CL}.pdf' --rMin {r} --rMax {R} {PAR} --rule {RL}"
+
+  "combine -M HybridNew {WSP} {BLI} {MOD} --saveHybridResult  -T {TOY} -C {CL}  --plot='limit_combined_hybridnew_{CL}.pdf' --rMin {r} --rMax {R} {PAR} --rule {RL}"
 #  "combine -M HybridNew {WSP} {BLI}  --generateNuisances={GEN} --generateExternalMeasurements=0 --fitNuisances=0 --testStat LHC --X-rtd MINIMIZER_freezeDisassociatedParams -T {TOY} -C {CL}  --plot='limit_combined_hybridnew_{CL}.pdf' --rMin {r} --rMax {R} {PAR} --rule {RL}"
 ]).format(
  #  GEN='1' if args.generate_nuisances else '0',

@@ -64,9 +64,9 @@ def executeDataCards(labels,values, category):
  
     for value in values:
         label = "%s" % (value)
-        combine_command = "combineTool.py -M AsymptoticLimits  -n %s -d %s --cl 0.90 " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
+#        combine_command = "combineTool.py -M AsymptoticLimits  -n %s -d %s --cl 0.90 " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
 #        combine_command = "combineTool.py -M BayesianSimple  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
-#        combine_command = "combineTool.py -M HybridNew --LHCmode LHC-limits  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 T -25 --expectedFromGrid 0.5" % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
+        combine_command = "combineTool.py -M HybridNew --LHCmode LHC-limits  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 T -25 --expectedFromGrid 0.5" % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
 
 
         print ""
@@ -80,9 +80,9 @@ def executeDataCards_onCondor(labels,values, category):
  
     for value in values:
         label = "%s" % (value)
-#        combine_command = "combineTool.py -M AsymptoticLimits  -n %s -d %s --cl 0.90  --job-mode condor --sub-opts='+JobFlavour=\"workday\"'  --task-name HybridTest%s " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt',category+label)
+        combine_command = "combineTool.py -M AsymptoticLimits  -n %s -d %s --cl 0.90  --job-mode condor --sub-opts='+JobFlavour=\"workday\"'  --task-name HybridTest%s " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt',category+label)
 #        combine_command = "combineTool.py -M BayesianSimple  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
-        combine_command = "combineTool.py -M HybridNew --LHCmode LHC-limits  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 -t 25 --expectedFromGrid 0.5 --job-mode condor --sub-opts='+JobFlavour=\"workday\"'  --task-name HybridTest%s " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt',category+label)
+#        combine_command = "combineTool.py -M HybridNew --LHCmode LHC-limits  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 -t 25 --expectedFromGrid 0.5 --job-mode condor --sub-opts='+JobFlavour=\"workday\"'  --task-name HybridTest%s " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt',category+label)
 
         # this on needs to add to submit to condor:
         # --job-mode condor --sub-opts='+JobFlavour=\"workday\"'  --task-name HybridTest
@@ -119,9 +119,10 @@ def plotUpperLimits(labels,values,prefix,outputLabel):
     upm  = [ ]
     text_limits=open("TextLimits%s"%(prefix)+outputLabel+".txt","w")
     for i in range(N):
-#        file_name = "higgsCombine"+prefix+labels[i]+".AsymptoticLimits.mH120.root"
-        file_name = "higgsCombine"+prefix+labels[i]+".HybridNew.mH120.quant0.500.root"
+        file_name = "higgsCombine"+prefix+labels[i]+".AsymptoticLimits.mH120.root"
+#        file_name = "higgsCombine"+prefix+labels[i]+".HybridNew.mH120.quant0.500.root"
 #        file_name = "higgsCombine"+prefix+labels[i]+".HybridNew.mH120.123456.quant0.500.root"
+
         print "filename:  ", file_name
         limit = getLimits(file_name)
 #        up2s.append(limit[4])
@@ -264,7 +265,8 @@ def main():
     #bdt_cuts = [-0.4,  -0.2,  0.00, 0.1, 0.2, 0.3, 0.31, 0.32, 0.33, 0.34, 0.35, 0.36, 0.37]      # a few entries for test
 
     categories = ['taue','taumu','tauhA','tauhB','all']
-    #categories = ['all']
+#    categories = ['all']
+#    categories = ['tauhA']
 
     bdt_cuts_all = generate_bdt_cuts(0.1, 0.8, 0.55)
     bdt_cuts_taue = generate_bdt_cuts(-0.2, 0.6, 0.2)
@@ -295,9 +297,9 @@ def main():
         print "values", values
         print "labels", labels
         print "prefix", cat
-#        executeDataCards(labels,values,cat)
-        executeDataCards_onCondor(labels,values,cat)
-        
+        executeDataCards(labels,values,cat)
+#        executeDataCards_onCondor(labels,values,cat)
+
 #        plotUpperLimits(labels,values,cat,outputLabel)
  
  
