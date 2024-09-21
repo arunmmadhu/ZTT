@@ -413,7 +413,7 @@ process                                 0                   1
 rate                                   {signal:.4f}        {bkg:.4f}
 --------------------------------------------------------------------------------
 lumi              lnN                       1.025               -
-Zxs               lnN                       1.0188              -
+Zxs               lnN                       1.0249              -
 BrTauX            lnN                       1.0{br_taux}        -
 bkgNorm_{cat}     rateParam  category{cat} background 1. [0.5,1.5]
 a0{cat}           param             {slopeval:.4f}        {slopeerr:.4f}
