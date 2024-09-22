@@ -94,8 +94,12 @@ full_range   = mass_histo_mc.Integral(mass_histo_mc.FindFixBin(args.fit_range_lo
 
 ratioToSignal = signal_range/full_range
 
-SignalIntegral = mass_histo_mc.GetEntries() * ratioToSignal *  args.signalnorm    
+#SignalIntegral = mass_histo_mc.GetEntries() * ratioToSignal *  args.signalnorm   # counting analysis
+SignalIntegral = mass_histo_mc.GetEntries() *  args.signalnorm                    # shape analysis
 
+
+print(' Signal Integral : ', SignalIntegral)
+print(' Signal Integral : ',  mass_histo_mc.GetEntries() *   args.signalnorm)
 
 tripletMass          = ROOT.RooRealVar('tripletMass'                , '3#mu mass'           , fit_range_lo, fit_range_hi, 'GeV')
 bdt_cv               = ROOT.RooRealVar('bdt_cv'                     , 'bdt_cv'              , -1 , 1)
@@ -117,7 +121,6 @@ tripletMass.setRange("SB1",fit_range_lo,1.75)
 tripletMass.setRange("SB2",1.80,fit_range_hi)
 tripletMass.setRange("fullRange",fit_range_lo,fit_range_hi);
 tripletMass.setRange("SIG",signal_range_lo,signal_range_hi)
-
 
 
 
