@@ -94,8 +94,8 @@ full_range   = mass_histo_mc.Integral(mass_histo_mc.FindFixBin(args.fit_range_lo
 
 ratioToSignal = signal_range/full_range
 
-#SignalIntegral = mass_histo_mc.GetEntries() * ratioToSignal *  args.signalnorm   # counting analysis
-SignalIntegral = mass_histo_mc.GetEntries() *  args.signalnorm                    # shape analysis
+SignalIntegral = mass_histo_mc.GetEntries() * ratioToSignal *  args.signalnorm   # counting analysis
+#SignalIntegral = mass_histo_mc.GetEntries() *  args.signalnorm                    # shape analysis
 
 
 print(' Signal Integral : ', SignalIntegral)
