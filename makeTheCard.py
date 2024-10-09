@@ -413,7 +413,7 @@ rate                                   {signal:.4f}        {bkg:.4f}
 lumi              lnN                       1.025               -
 Zxs               lnN                       1.0249              -
 BrTauX            lnN                       1.0{br_taux}        -
-extrap_factor     gmN     {sideband:.0f}    -                   {factor:.6f}
+extrap_factor_{cat}     gmN     {sideband:.0f}    -                   {factor:.6f}
 extrap_factor_unc lnN                       -                   1.10
 --------------------------------------------------------------------------------
 '''.format(
