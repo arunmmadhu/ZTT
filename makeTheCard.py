@@ -94,12 +94,8 @@ full_range   = mass_histo_mc.Integral(mass_histo_mc.FindFixBin(args.fit_range_lo
 
 ratioToSignal = signal_range/full_range
 
-SignalIntegral = mass_histo_mc.GetEntries() * ratioToSignal *  args.signalnorm   # counting analysis
-#SignalIntegral = mass_histo_mc.GetEntries() *  args.signalnorm                    # shape analysis
+SignalIntegral = mass_histo_mc.GetEntries() * ratioToSignal *  args.signalnorm    
 
-
-print(' Signal Integral : ', SignalIntegral)
-print(' Signal Integral : ',  mass_histo_mc.GetEntries() *   args.signalnorm)
 
 tripletMass          = ROOT.RooRealVar('tripletMass'                , '3#mu mass'           , fit_range_lo, fit_range_hi, 'GeV')
 bdt_cv               = ROOT.RooRealVar('bdt_cv'                     , 'bdt_cv'              , -1 , 1)
@@ -124,9 +120,9 @@ tripletMass.setRange("SIG",signal_range_lo,signal_range_hi)
 
 
 
+
 # Fixing a certain value of exponential slope after a certain value of the BDT cut
-#if alt_pdf and args.bdt_point > pdf_switch_point:
-#        myVar.setConstant(True)
+# Redacted
         
 if alt_pdf and (float(args.bdt_point) > float(pdf_switch_point)):
         slope = ROOT.RooRealVar('slope', 'slope', float(args.fixed_slope), float(args.fixed_slope), float(args.fixed_slope))
@@ -140,13 +136,12 @@ flat_poly  = ROOT.RooPolynomial('bkg_flat_poly', 'bkg_flat_poly', tripletMass)
 nbkg = ROOT.RooRealVar('nbkg', 'nbkg', 1000, 0, 500000)
 
 #Switching to flat polynomial after a certain point
-#Redacted
 
-#if alt_pdf and args.bdt_point > pdf_switch_point:
-#        pdfmodel = ROOT.RooAddPdf('bkg_flat_expo', 'bkg_flat_expo', ROOT.RooArgList(flat_poly), ROOT.RooArgList(nbkg))
-#else:
-#        pdfmodel = ROOT.RooAddPdf('bkg_extended_expo', 'bkg_extended_expo', ROOT.RooArgList(expo), ROOT.RooArgList(nbkg))
-pdfmodel = ROOT.RooAddPdf('bkg_extended_expo', 'bkg_extended_expo', ROOT.RooArgList(expo), ROOT.RooArgList(nbkg))
+if alt_pdf and (float(args.bdt_point) > float(pdf_switch_point)):
+        pdfmodel = ROOT.RooAddPdf('bkg_flat', 'bkg_flat', ROOT.RooArgList(flat_poly), ROOT.RooArgList(nbkg))
+else:
+        pdfmodel = ROOT.RooAddPdf('bkg_extended_expo', 'bkg_extended_expo', ROOT.RooArgList(expo), ROOT.RooArgList(nbkg))
+#pdfmodel = ROOT.RooAddPdf('bkg_extended_expo', 'bkg_extended_expo', ROOT.RooArgList(expo), ROOT.RooArgList(nbkg))
 
 
 mean  = ROOT.RooRealVar('mean' , 'mean' ,   1.78, 1.6, 1.9)
@@ -272,6 +267,7 @@ SG_integral = pdfmodel.createIntegral(ROOT.RooArgSet(tripletMass), ROOT.RooArgSe
 SB_integral = pdfmodel.createIntegral(ROOT.RooArgSet(tripletMass), ROOT.RooArgSet(tripletMass), "left,right").getVal()
 
 
+
 if blinded:
     pdfmodel.plotOn(frame,  ROOT.RooFit.LineColor(ROOT.kBlue) , ROOT.RooFit.Normalization(nbkg.getVal()*SB_integral, ROOT.RooAbsReal.NumEvent), ROOT.RooFit.ProjectionRange('full') )
 else:
@@ -347,7 +343,7 @@ else:
 
 
 with open("Slopes_%s"%(args.category)+".txt", "a") as f:
-   f.write("Cut: %s slopes: %s n_sideband: %s expected_bkg: %s \n"%(args.bdt_point,slope.getVal(),nbkg.getVal()*SB_integral,nbkg.getVal()*SG_integral if nbkg.getVal()*SG_integral > 0.001 else 0.001))
+   f.write("Cut: %s nbkg: %s n_sideband: %s expected_bkg: %s SG/SB ratio: %s \n"%(args.bdt_point,nbkg.getVal(),fulldata.numEntries(),nbkg.getVal()*SG_integral,SG_integral/SB_integral))
 
 
 #workspace.factory('cb_fraction[%f]'  % cb_fraction.getVal())
@@ -392,6 +388,8 @@ if args.category=='tauhB':
         
 if args.category=='all':
         br = '000'
+        
+exp_fact = (signal_range_hi-signal_range_lo)/(fit_range_hi-fit_range_lo-(signal_range_hi-signal_range_lo))
 
 # make  the datacard
 with open(output_dir+'/datacards/%s/ZTT_T3mu_%s_bdtcut%s.txt' %(args.category,args.category,args.bdt_point), 'w') as card:
@@ -402,9 +400,6 @@ imax 1 number of bins
 jmax * number of processes minus 1
 kmax * number of nuisance parameters
 --------------------------------------------------------------------------------
-shapes background    category{cat}       ../../workspaces/{wdir}/workspace{cat}_bdtcut{bdt}.root t3m_shapes:bkg
-shapes signal        category{cat}       ../../workspaces/{wdir}/workspace{cat}_bdtcut{bdt}.root t3m_shapes:sig
-shapes data_obs      category{cat}       ../../workspaces/{wdir}/workspace{cat}_bdtcut{bdt}.root t3m_shapes:data_obs
 --------------------------------------------------------------------------------
 bin               category{cat}
 observation       {obs:d}
@@ -418,8 +413,8 @@ rate                                   {signal:.4f}        {bkg:.4f}
 lumi              lnN                       1.025               -
 Zxs               lnN                       1.0249              -
 BrTauX            lnN                       1.0{br_taux}        -
-bkgNorm_{cat}     rateParam  category{cat} background 1. [0.5,1.5]
-a0{cat}           param             {slopeval:.4f}        {slopeerr:.4f}
+extrap_factor     gmN     {sideband:.0f}    -                   {factor:.6f}
+extrap_factor_unc lnN                       -                   1.10
 --------------------------------------------------------------------------------
 '''.format(
          cat      = args.category,
@@ -427,10 +422,12 @@ a0{cat}           param             {slopeval:.4f}        {slopeerr:.4f}
          wdir     = args.category,
          obs      = fulldata.numEntries() if blinded==False else -1,
          signal   = SignalIntegral,
-         bkg      = nbkg.getVal() if nbkg.getVal() >0.001 else 0.001,#*SG_integral if nbkg.getVal()*SG_integral > 0.001 else 0.001,
+         bkg      = nbkg.getVal()*SG_integral,#nbkg.getVal()*SG_integral if nbkg.getVal()*SG_integral > 0.001 else 0.001
          slopeval = slope.getVal(), 
          slopeerr = slope.getError(),
          br_taux  = br,
+         factor   = exp_fact,
+         sideband = fulldata.numEntries(),
          )
 )
 

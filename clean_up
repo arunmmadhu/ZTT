@@ -1,0 +1,7 @@
+rm *out
+rm *log
+rm *err
+rm *sh
+rm *sub
+
+
