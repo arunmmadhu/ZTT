@@ -66,14 +66,20 @@ if __name__ == "__main__":
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taue\""  + "  --signalnorm=0.00000856928"  + "  --bdt_point=%s"%bdt_cut + "  --outdir=unfixed_slope " + ";"
         
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taue\""  + "  --signalnorm=0.00000856928"  + "  --bdt_point=%s"%bdt_cut + " --alt_pdf "  + "  --pdf_switch_point=-0.02 " + "  --fixed_slope=-0.29 " + "  --outdir=fixed_slope " + ";"
-        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taue\""  + "  --signalnorm=0.00000856928"  + "  --bdt_point=%s"%bdt_cut + " --alt_pdf "  + "  --pdf_switch_point=-1.0 " + "  --alt_pdf " + "  --outdir=flat_fit " + ";"
+        #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taue\""  + "  --signalnorm=0.00000856928"  + "  --bdt_point=%s"%bdt_cut + " --alt_pdf "  + "  --pdf_switch_point=-1.0 " + "  --alt_pdf " + "  --outdir=flat_fit " + ";"
+        #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taue\""  + "  --signalnorm=0.00000856928"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=power_law  --outdir=power_law " + ";"
+        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taue\""  + "  --signalnorm=0.00000856928"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=flat  --outdir=flat_fit " + ";"
+        #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taue\""  + "  --signalnorm=0.00000856928"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=unfixed_exp  --outdir=unfixed_exp " + ";"
         #pass
        
     for bdt_cut in bdt_cuts_taumu:
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taumu\"" + "  --signalnorm=0.00000822810"  + "  --bdt_point=%s"%bdt_cut + "  --outdir=unfixed_slope " + ";"
         
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taumu\"" + "  --signalnorm=0.00000822810"  + "  --bdt_point=%s"%bdt_cut + " --alt_pdf "  + "  --pdf_switch_point=0.19 " + "  --fixed_slope=0.86 " + "  --outdir=fixed_slope " + ";"
-        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taumu\"" + "  --signalnorm=0.00000822810"  + "  --bdt_point=%s"%bdt_cut + " --alt_pdf "  + "  --pdf_switch_point=-1.0 " + "  --alt_pdf " + "  --outdir=flat_fit " + ";"
+        #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taumu\"" + "  --signalnorm=0.00000822810"  + "  --bdt_point=%s"%bdt_cut + " --alt_pdf "  + "  --pdf_switch_point=-1.0 " + "  --alt_pdf " + "  --outdir=flat_fit " + ";"
+        #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taumu\"" + "  --signalnorm=0.00000822810"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=power_law  --outdir=power_law " + ";"
+        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taumu\"" + "  --signalnorm=0.00000822810"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=flat  --outdir=flat_fit " + ";"
+        #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taumu\"" + "  --signalnorm=0.00000822810"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=unfixed_exp  --outdir=unfixed_exp " + ";"
         #pass
     
     for bdt_cut in bdt_cuts_tauhA:
@@ -81,21 +87,30 @@ if __name__ == "__main__":
         
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhA\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + " --alt_pdf "  + "  --pdf_switch_point=0.12 " + "  --fixed_slope=1.86 " + "  --outdir=fixed_slope " + ";"
         
-        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhA\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + " --alt_pdf "  + "  --pdf_switch_point=-1.0 " + "  --alt_pdf " + "  --outdir=flat_fit " + ";"
+        #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhA\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + " --alt_pdf "  + "  --pdf_switch_point=-1.0 " + "  --alt_pdf " + "  --outdir=flat_fit " + ";"
+        #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhA\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=power_law  --outdir=power_law " + ";"
+        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhA\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=flat  --outdir=flat_fit " + ";"
+        #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhA\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=unfixed_exp  --outdir=unfixed_exp " + ";"
         #pass
         
     for bdt_cut in bdt_cuts_tauhB:
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhB\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + "  --outdir=unfixed_slope " + ";"
         
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhB\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + " --alt_pdf "  + "  --pdf_switch_point=-0.16 " + "  --fixed_slope=0.39 " + "  --outdir=fixed_slope " + ";"
-        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhB\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + " --alt_pdf "  + "  --pdf_switch_point=-1.0 " + "  --alt_pdf " + "  --outdir=flat_fit " + ";"
+        #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhB\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + " --alt_pdf "  + "  --pdf_switch_point=-1.0 " + "  --alt_pdf " + "  --outdir=flat_fit " + ";"
+        #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhB\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=power_law  --outdir=power_law " + ";"
+        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhB\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=flat  --outdir=flat_fit " + ";"
+        #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhB\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=unfixed_exp  --outdir=unfixed_exp " + ";"
         #pass
         
     for bdt_cut in bdt_cuts_all:
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"all\""  + "  --signalnorm=0.00000824176"  + "  --bdt_point=%s"%bdt_cut + "  --outdir=unfixed_slope " + ";"
         
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"all\""  + "  --signalnorm=0.00000824176"  + "  --bdt_point=%s"%bdt_cut + " --alt_pdf "  + "  --pdf_switch_point=0.57 " + "  --fixed_slope=-0.11 " + "  --outdir=fixed_slope " + ";"
-        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"all\""  + "  --signalnorm=0.00000824176"  + "  --bdt_point=%s"%bdt_cut + " --alt_pdf "  + "  --pdf_switch_point=-1.0 " + "  --alt_pdf " + "  --outdir=flat_fit " + ";"
+        #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"all\""  + "  --signalnorm=0.00000824176"  + "  --bdt_point=%s"%bdt_cut + " --alt_pdf "  + "  --pdf_switch_point=-1.0 " + "  --alt_pdf " + "  --outdir=flat_fit " + ";"
+        #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"all\""  + "  --signalnorm=0.00000824176"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=power_law  --outdir=power_law " + ";"
+        command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"all\""  + "  --signalnorm=0.00000824176"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=flat  --outdir=flat_fit " + ";"
+        #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"all\""  + "  --signalnorm=0.00000824176"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=unfixed_exp  --outdir=unfixed_exp " + ";"
         #pass
     
     print command

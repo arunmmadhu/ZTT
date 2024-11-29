@@ -32,6 +32,7 @@ parser.add_argument('--no-alt_pdf'     ,  help="Whether to use an alternate PDF,
 parser.add_argument('--pdf_switch_point' ,  help="Point where you switch to the alternate PDF; [Default: %(default)s] " , dest='pdf_switch_point'  , default = 0.0 )
 parser.add_argument('--fixed_slope'      ,  help="Value of the sloped after the point where you switch to the alternate PDF; [Default: %(default)s] " , dest='fixed_slope'  , default = -0.001 )
 parser.add_argument('--outdir'           ,  help="Output directory; [Default: %(default)s] "                     , dest='outdir'            , default='unfixed_slope')
+parser.add_argument('--pdf_type'         ,  help="Pdf types: flat, linear, unfixed_exp, fixed_exp, power_law; [Default: %(default)s] "              , dest='pdf_type'            , default='flat')
 
 parser.set_defaults(blinded=True)
 
@@ -48,6 +49,13 @@ minitree        = args.datafile
 alt_pdf         = args.alt_pdf
 pdf_switch_point= args.pdf_switch_point
 output_dir      = args.outdir
+pdf_type        = args.pdf_type
+
+WhetherPdfTypeFlat = False
+WhetherPdfTypeLinear = False
+WhetherPdfTypeUnfixed_Exp = False
+WhetherPdfTypeFixed_Exp = False
+WhetherPdfTypePower_Law = False
 
 print "selection: ", selection
 print "bdtprefix: ", args.bdt_point
@@ -123,25 +131,28 @@ tripletMass.setRange("SIG",signal_range_lo,signal_range_hi)
 
 # Fixing a certain value of exponential slope after a certain value of the BDT cut
 # Redacted
-        
-if alt_pdf and (float(args.bdt_point) > float(pdf_switch_point)):
-        slope = ROOT.RooRealVar('slope', 'slope', float(args.fixed_slope), float(args.fixed_slope), float(args.fixed_slope))
-else:
-        slope = ROOT.RooRealVar('slope', 'slope', float(args.fixed_slope), -100, 100)
-
-expo  = ROOT.RooExponential('bkg_expo', 'bkg_expo', tripletMass, slope)
-
-flat_poly  = ROOT.RooPolynomial('bkg_flat_poly', 'bkg_flat_poly', tripletMass)
 
 nbkg = ROOT.RooRealVar('nbkg', 'nbkg', 1000, 0, 500000)
+slope = ROOT.RooRealVar('slope', 'slope', float(args.fixed_slope), -100, 100)
 
-#Switching to flat polynomial after a certain point
-
-if alt_pdf and (float(args.bdt_point) > float(pdf_switch_point)):
+if(pdf_type == 'flat'):
+        flat_poly = ROOT.RooPolynomial('bkg_flat_poly', 'bkg_flat_poly', tripletMass)
         pdfmodel = ROOT.RooAddPdf('bkg_flat', 'bkg_flat', ROOT.RooArgList(flat_poly), ROOT.RooArgList(nbkg))
-else:
+if(pdf_type == 'linear'):
+        flat_poly = ROOT.RooPolynomial('bkg_flat_poly', 'bkg_flat_poly', tripletMass)
+        pdfmodel = ROOT.RooAddPdf('bkg_flat', 'bkg_flat', ROOT.RooArgList(flat_poly), ROOT.RooArgList(nbkg))
+if(pdf_type == 'unfixed_exp' or (pdf_type == 'fixed_exp' and float(args.bdt_point) < float(pdf_switch_point)) ):
+        slope = ROOT.RooRealVar('slope', 'slope', float(args.fixed_slope), -100, 100)
+        expo = ROOT.RooExponential('bkg_expo', 'bkg_expo', tripletMass, slope)
         pdfmodel = ROOT.RooAddPdf('bkg_extended_expo', 'bkg_extended_expo', ROOT.RooArgList(expo), ROOT.RooArgList(nbkg))
-#pdfmodel = ROOT.RooAddPdf('bkg_extended_expo', 'bkg_extended_expo', ROOT.RooArgList(expo), ROOT.RooArgList(nbkg))
+if(pdf_type == 'fixed_exp' and (float(args.bdt_point) > float(pdf_switch_point)) ):
+        slope = ROOT.RooRealVar('slope', 'slope', float(args.fixed_slope), float(args.fixed_slope), float(args.fixed_slope))
+        expo = ROOT.RooExponential('bkg_expo', 'bkg_expo', tripletMass, slope)
+        pdfmodel = ROOT.RooAddPdf('bkg_extended_expo', 'bkg_extended_expo', ROOT.RooArgList(expo), ROOT.RooArgList(nbkg))
+if(pdf_type == 'power_law'):
+        power = ROOT.RooRealVar('power', 'power', 1.0, -100, 100)
+        power_law = ROOT.RooGenericPdf('power_law', 'power_law', "TMath::Power(@0, @1)", ROOT.RooArgList(tripletMass, power))
+        pdfmodel = ROOT.RooAddPdf('bkg_power_law', 'bkg_power_law', ROOT.RooArgList(power_law), ROOT.RooArgList(nbkg))
 
 
 mean  = ROOT.RooRealVar('mean' , 'mean' ,   1.78, 1.6, 1.9)
@@ -324,6 +335,36 @@ mc =  ROOT.RooDataSet(
 )
 
 
+# Get Extrapolation Factor
+def getExtrapFactor(pdftype, categ, bdtcut):
+    file_path_1 = 'Slopes_' + categ + '_' + pdftype + '.txt'
+    
+    closest_cut = None  # To store the closest cut
+    closest_ext_fact = None  # To store the extrapolation factor corresponding to the closest cut
+    min_diff = float('inf')  # Initialize with a large number
+    
+    with open(file_path_1, 'r') as file1:
+        # Read lines from the file
+        for line1 in file1:
+            # Split the line into components
+            parts_1 = line1.split()
+            
+            cut = float(parts_1[1])
+            ext_fact = float(parts_1[10])
+            n_sideband = round(float(parts_1[5]))
+            
+            # Calculate the difference between the current cut and bdtcut
+            diff = abs(cut - bdtcut)
+            
+            # Update the closest cut and its extrapolation factor if this cut is closer
+            if diff < min_diff and n_sideband > 0.5:
+                min_diff = diff
+                closest_cut = cut
+                closest_ext_fact = ext_fact
+    
+    # Return the closest cut and its extrapolation factor
+    return closest_ext_fact
+
 
 
 # create workspace
@@ -336,13 +377,19 @@ workspace = ROOT.RooWorkspace('t3m_shapes')
 
 workspace.factory('tripletMass[%f, %f]' % (fit_range_lo, fit_range_hi))
 
-if alt_pdf and args.bdt_point > pdf_switch_point:
+if(pdf_type == 'flat'):
         workspace.factory("Polynomial::bkg(tripletMass, a0%s[%f])" %(args.category,1.0) ) 
-else:
-        workspace.factory("Exponential::bkg(tripletMass, a0%s[%f,%f,%f])" %(args.category, slope.getVal(), slope.getError(), slope.getError()) ) 
+if(pdf_type == 'linear'):
+        workspace.factory("Polynomial::bkg(tripletMass, a0%s[%f])" %(args.category,1.0) ) 
+if(pdf_type == 'unfixed_exp'):
+        workspace.factory("Exponential::bkg(tripletMass, a0%s[%f,%f,%f])" %(args.category, slope.getVal(), slope.getError(), slope.getError()) )
+if(pdf_type == 'fixed_exp' and (float(args.bdt_point) > float(pdf_switch_point)) ):
+        workspace.factory("Exponential::bkg(tripletMass, a0%s[%f,%f,%f])" %(args.category, slope.getVal(), slope.getError(), slope.getError()) )
+if(pdf_type == 'power_law'):
+        workspace.factory("Power::bkg(tripletMass, a0%s[%f, %f, %f])" % (args.category, power.getVal(), power.getVal() - power.getError(), power.getVal() + power.getError() ))
 
 
-with open("Slopes_%s"%(args.category)+".txt", "a") as f:
+with open("Slopes_%s_%s"%(args.category,pdf_type)+".txt", "a") as f:
    f.write("Cut: %s nbkg: %s n_sideband: %s expected_bkg: %s SG/SB ratio: %s \n"%(args.bdt_point,nbkg.getVal(),fulldata.numEntries(),nbkg.getVal()*SG_integral,SG_integral/SB_integral))
 
 
@@ -390,6 +437,8 @@ if args.category=='all':
         br = '000'
         
 exp_fact = (signal_range_hi-signal_range_lo)/(fit_range_hi-fit_range_lo-(signal_range_hi-signal_range_lo))
+exp_fact_different_pdf = getExtrapFactor('unfixed_exp', args.category, float(args.bdt_point))
+exp_uncert = extrap_error = 1.0 + abs(exp_fact_different_pdf-exp_fact)/exp_fact
 
 # make  the datacard
 with open(output_dir+'/datacards/%s/ZTT_T3mu_%s_bdtcut%s.txt' %(args.category,args.category,args.bdt_point), 'w') as card:
@@ -413,8 +462,8 @@ rate                                   {signal:.4f}        {bkg:.4f}
 lumi              lnN                       1.025               -
 Zxs               lnN                       1.0249              -
 BrTauX            lnN                       1.0{br_taux}        -
-extrap_factor_{cat}     gmN     {sideband:.0f}    -                   {factor:.6f}
-extrap_factor_unc lnN                       -                   1.10
+extrap_factor_{cat}     gmN     {sideband:.0f}    -             {factor:.6f}
+extrap_factor_unc lnN                       -                   {exp_un:.3f}
 --------------------------------------------------------------------------------
 '''.format(
          cat      = args.category,
@@ -427,6 +476,7 @@ extrap_factor_unc lnN                       -                   1.10
          slopeerr = slope.getError(),
          br_taux  = br,
          factor   = exp_fact,
+         exp_un   = exp_uncert,
          sideband = fulldata.numEntries(),
          )
 )

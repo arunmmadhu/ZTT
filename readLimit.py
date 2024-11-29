@@ -266,7 +266,7 @@ def main():
     #bdt_cuts = [-0.4,  -0.2,  0.00, 0.1, 0.2, 0.3, 0.31, 0.32, 0.33, 0.34, 0.35, 0.36, 0.37]      # a few entries for test
 
 #    categories = ['taue','taumu','tauhA','tauhB','all']
-#    categories = ['all']
+#    categories = ['taue']
     categories = ['taue','taumu','tauhA','tauhB','all']
 
     bdt_cuts_taue = generate_bdt_cuts(-0.2, 0.6, 0.2)
