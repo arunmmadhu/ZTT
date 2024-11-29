@@ -14,4 +14,4 @@ Once the datacards, are made, run:
 ./readLimit.py
 ~~~
 
-for submitting teh lumi scan runs to condor and for plotting.
+for submitting the lumi scan runs to condor and for plotting.
