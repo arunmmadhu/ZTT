@@ -52,6 +52,12 @@ class BDT_Shape_Comparisons:
             frame = ROOT.RooRealVar('bdt_cv', 'BDT Score', -1, 1).frame()
             colors = [ROOT.kBlack, ROOT.kRed, ROOT.kBlue, ROOT.kGreen+2, ROOT.kMagenta]
             
+            labels = ["old", "new"]
+            
+            legend = ROOT.TLegend(0.6, 0.65, 0.88, 0.88)
+            legend.SetBorderSize(0)
+            legend.SetFillStyle(0)
+            
             for i, datafile in enumerate(datafiles):
                 MiniTreeFile = ROOT.TFile.Open(datafile)
                 tree = MiniTreeFile.Get(categ)  # e.g. 'ztau3mutauh_A'
@@ -61,28 +67,43 @@ class BDT_Shape_Comparisons:
                 tripletMass = ROOT.RooRealVar('tripletMass', '3#mu mass', 1.6, 2.0)
                 isMC = ROOT.RooRealVar("isMC", "isMC", 0, 1000000)
                 weight = ROOT.RooRealVar("weight", "weight", 0, 5)
-                dimu_OS1 = ROOT.RooRealVar('dimu_OS1', 'dimu_OS1', 0, 2)
-                dimu_OS2 = ROOT.RooRealVar('dimu_OS2', 'dimu_OS2', 0, 2)
+                dimu_OS1 = ROOT.RooRealVar('dimu_OS1', 'dimu_OS1', 0, 5)
+                dimu_OS2 = ROOT.RooRealVar('dimu_OS2', 'dimu_OS2', 0, 5)
+                
+                #need to make changes so that mc bkg is not in the dataset
                 
                 variables = ROOT.RooArgSet(tripletMass, bdt_cv, isMC, weight, dimu_OS1, dimu_OS2)
+                selector_str = "isMC == 0"
+                #selector_str = "(isMC == 211 | isMC == 210231 | isMC == 210232 | isMC == 210233 )"
+                dataset_unweighted = ROOT.RooDataSet("data_{0}".format(i), "data_{0}".format(i), tree, variables, selector_str, "weight")
                 
-                selector_str = "(fabs(dimu_OS1 - 1.020)>0.020)&&(fabs(dimu_OS2 - 1.020)>0.020)&&(fabs(dimu_OS1 - 0.782)>0.020)&&(fabs(dimu_OS2 - 0.782)>0.020)&&(tripletMass>1.6)&&(tripletMass<2.0)"
+                norm_factor = 1.0 / dataset_unweighted.numEntries()
+                #print("dataset entries: ",dataset.numEntries())
+                scale = ROOT.RooRealVar('scale', 'scale', norm_factor)
+                variables = ROOT.RooArgSet(tripletMass, bdt_cv, isMC, weight, dimu_OS1, dimu_OS2, scale)
                 
-                dataset = ROOT.RooDataSet("data_{0}".format(i), "data_{0}".format(i), tree, variables, selector_str, "weight")
+                dataset = ROOT.RooDataSet("data_{0}".format(i), "data_{0}".format(i), tree, variables, selector_str, 'scale')
                 
+                curve_name = "curve_%d" % i
                 dataset.plotOn(
                     frame,
                     ROOT.RooFit.Binning(100),
                     ROOT.RooFit.MarkerColor(colors[i % len(colors)]),
                     ROOT.RooFit.LineColor(colors[i % len(colors)]),
                     ROOT.RooFit.MarkerStyle(20 + i),
-                    ROOT.RooFit.MarkerSize(0.75)
+                    ROOT.RooFit.MarkerSize(0.75),
+                    ROOT.RooFit.Name(curve_name)
                 )
+                
+                legend.AddEntry(curve_name, labels[i], "lep")
             
             frame.GetXaxis().SetTitle("BDT score")
             frame.SetTitle("BDT score comparison")
             frame.Draw()
-            ROOT.gPad.SaveAs("bdt_score_comparison_datasets.png")
+            legend.Draw()
+            #ROOT.gPad.SaveAs("bdt_score_comparison_datasets_%s.png" % categ)
+            #ROOT.gPad.SaveAs("bdt_score_comparison_datasets_mc_%s.png" % categ)
+            ROOT.gPad.SaveAs("bdt_score_comparison_datasets_data_%s.png" % categ)
         
         
         
@@ -405,9 +426,9 @@ if __name__ == "__main__":
         
         # Sample datasets (for Compare_BDT_Scores_MultipleDatasets)
         dataset_files = [
-            "ztautau_A.root",
-            "ztautau_B.root",
-            "ztautau_C.root"
+            "../../Combine_Tree_ztau3mutau_orig_PostBDT.root",
+            #"../../Combine_Tree_ztau3mutau_PFGL_PostBDT.root",
+            "../../Combine_Tree_ztau3mutau_PF_PostBDT.root",
         ]
         
         # Common tree name in all datasets
@@ -452,11 +473,11 @@ if __name__ == "__main__":
                 tree = 'ztautau'
         
             # 1. Compare different datasets (same selection)
-            # BDTPlotter.Compare_BDT_Scores_MultipleDatasets(dataset_files, tree)
+            BDTPlotter.Compare_BDT_Scores_MultipleDatasets(dataset_files, tree)
         
             # 2. Compare different selections on the same file
             # Pick any one file as reference (e.g., A)
-            BDTPlotter.Compare_BDT_Scores_MultipleSelections(datafile, tree, bdt_selections, selection_labels)
+            #BDTPlotter.Compare_BDT_Scores_MultipleSelections(datafile, tree, bdt_selections, selection_labels)
         
             # 3. Full comparison: different files + different selections
             #BDTPlotter.Plot_Multiple_BDT_Shapes(
