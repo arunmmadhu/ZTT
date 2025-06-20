@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import ROOT
 from ROOT import TFile, TTree, TCanvas, TGraph, TMultiGraph, TGraphErrors, TLegend, TPaveLabel, TPaveText, TLatex
@@ -70,10 +70,10 @@ def executeDataCards(labels,values, category):
 
 #        combine_command = "combineTool.py -M HybridNew --LHCmode LHC-limits  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 -t 5 --expectedFromGrid 0.5" % (category+label,'datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
 
-        print ""
-        print ">>> " + combine_command
+        print("")
+        print(">>> " + combine_command)
         os.system(combine_command)
-        print ">>>   higgsCombine"+category+label+".Asymptotic.mH125.root created"
+        print(">>>   higgsCombine"+category+label+".Asymptotic.mH125.root created")
 
 
 
@@ -87,10 +87,10 @@ def executeDataCards_onCondor(labels,values, category):
 
         # this on needs to add to submit to condor:
         # --job-mode condor --sub-opts='+JobFlavour=\"workday\"'  --task-name HybridTest
-        print ""
-        print ">>> " + combine_command
+        print("")
+        print(">>> " + combine_command)
         os.system(combine_command)
-        print ">>>   higgsCombine"+category+label+".Asymptotic.mH125.root created"
+        print(">>>   higgsCombine"+category+label+".Asymptotic.mH125.root created")
         
  
  
@@ -103,7 +103,7 @@ def getLimits(file_name):
     limits = [ ]
     for quantile in tree:
         limits.append(tree.limit)
-        print ">>>   %.2f" % limits[-1]
+        print(">>>   %.2f" % limits[-1])
  
     return limits[:6]
  
@@ -124,7 +124,7 @@ def plotUpperLimits(labels,values,prefix,outputLabel):
 #        file_name = "higgsCombine"+prefix+labels[i]+".HybridNew.mH120.quant0.500.root"
         file_name = "higgsCombine"+prefix+labels[i]+".HybridNew.mH120.123456.quant0.500.root"
 
-        print "filename:  ", file_name
+        print("filename:  ", file_name)
         limit = getLimits(file_name)
 #        up2s.append(limit[4])
         upm.append(limit[2])
@@ -245,7 +245,7 @@ def plotUpperLimits(labels,values,prefix,outputLabel):
     latex.SetTextAlign(1)
     latex.DrawLatex(0.15, 0.85, Text)
     latex.Draw('same') 
-    print " "
+    print(" ")
     c.SaveAs("Limit_scan_Category_"+prefix+outputLabel+".png")
     c.Close()
  
@@ -266,8 +266,8 @@ def main():
     #bdt_cuts = [-0.4,  -0.2,  0.00, 0.1, 0.2, 0.3, 0.31, 0.32, 0.33, 0.34, 0.35, 0.36, 0.37]      # a few entries for test
 
 #    categories = ['taue','taumu','tauhA','tauhB','all']
-#    categories = ['taue']
-    categories = ['taue','taumu','tauhA','tauhB','all']
+    categories = ['tauhB']
+#    categories = ['taue','taumu','tauhA','tauhB','all']
 
     bdt_cuts_taue = generate_bdt_cuts(-0.2, 0.6, 0.2)
     bdt_cuts_taumu = generate_bdt_cuts(0.0, 0.7, 0.4)
@@ -285,7 +285,7 @@ def main():
     'tauhB': bdt_cuts_tauhB
     }
 
-    print "category", args.category 
+    print("category", args.category) 
     outputLabel = ''
     for cat in categories:
         labels = [ ]
@@ -297,13 +297,13 @@ def main():
             values.append(cl)
             label = "%s" % (cl)
             labels.append(label)
-        print "values", values
-        print "labels", labels
-        print "prefix", cat
+        print("values", values)
+        print("labels", labels)
+        print("prefix", cat)
 #        executeDataCards(labels,values,cat)
-#        executeDataCards_onCondor(labels,values,cat)
+        executeDataCards_onCondor(labels,values,cat)
 
-        plotUpperLimits(labels,values,cat,outputLabel)
+#        plotUpperLimits(labels,values,cat,outputLabel)
  
  
  

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import argparse
@@ -71,8 +71,8 @@ if __name__ == "__main__":
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taue\""  + "  --signalnorm=0.00000856928"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=flat  --outdir=flat_fit " + ";"
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taue\""  + "  --signalnorm=0.00000856928"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=unfixed_exp  --outdir=unfixed_exp " + ";"
         #command+="./makeTheCard.py --selection=\'bdt_cv > %s\'"%bdt_cut   + " --category=\"taue\""  + "  --signalnorm=0.00000856928"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=unfixed_exp  --outdir=unfixed_exp " + ";"
-        command+="./makeTheCard.py --selection=\' bdt_cv > %s\'"%bdt_cut   + " --category=\"taue\""  + "  --signalnorm=0.00000856928"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=flat  --outdir=flat_fit " + ";"
-        #pass
+        #command+="./makeTheCard.py --selection=\' bdt_cv > %s\'"%bdt_cut   + " --category=\"taue\""  + "  --signalnorm=0.00000856928"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=flat  --outdir=flat_fit " + ";"
+        pass
        
     for bdt_cut in bdt_cuts_taumu:
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taumu\"" + "  --signalnorm=0.00000822810"  + "  --bdt_point=%s"%bdt_cut + "  --outdir=unfixed_slope " + ";"
@@ -83,8 +83,8 @@ if __name__ == "__main__":
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taumu\"" + "  --signalnorm=0.00000822810"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=flat  --outdir=flat_fit " + ";"
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taumu\"" + "  --signalnorm=0.00000822810"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=unfixed_exp  --outdir=unfixed_exp " + ";"
         #command+="./makeTheCard.py --selection=\'bdt_cv > %s\'"%bdt_cut   + " --category=\"taumu\"" + "  --signalnorm=0.00000822810"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=unfixed_exp  --outdir=unfixed_exp " + ";"
-        command+="./makeTheCard.py --selection=\'bdt_cv > %s\'"%bdt_cut   + " --category=\"taumu\"" + "  --signalnorm=0.00000822810"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=flat  --outdir=flat_fit " + ";"
-        #pass
+        #command+="./makeTheCard.py --selection=\'bdt_cv > %s\'"%bdt_cut   + " --category=\"taumu\"" + "  --signalnorm=0.00000822810"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=flat  --outdir=flat_fit " + ";"
+        pass
     
     for bdt_cut in bdt_cuts_tauhA:
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhA\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + "  --outdir=unfixed_slope " + ";"
@@ -96,8 +96,8 @@ if __name__ == "__main__":
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhA\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=flat  --outdir=flat_fit " + ";"
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhA\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=unfixed_exp  --outdir=unfixed_exp " + ";"
         #command+="./makeTheCard.py --selection=\'bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhA\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=unfixed_exp  --outdir=unfixed_exp " + ";"
-        command+="./makeTheCard.py --selection=\'bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhA\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=flat  --outdir=flat_fit " + ";"
-        #pass
+        #command+="./makeTheCard.py --selection=\'bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhA\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=flat  --outdir=flat_fit " + ";"
+        pass
         
     for bdt_cut in bdt_cuts_tauhB:
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhB\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + "  --outdir=unfixed_slope " + ";"
@@ -120,8 +120,8 @@ if __name__ == "__main__":
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"all\""  + "  --signalnorm=0.00000824176"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=flat  --outdir=flat_fit " + ";"
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"all\""  + "  --signalnorm=0.00000824176"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=unfixed_exp  --outdir=unfixed_exp " + ";"
         #command+="./makeTheCard.py --selection=\'bdt_cv > %s\'"%bdt_cut   + " --category=\"all\""  + "  --signalnorm=0.00000824176"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=unfixed_exp  --outdir=unfixed_exp " + ";"
-        command+="./makeTheCard.py --selection=\'bdt_cv > %s\'"%bdt_cut   + " --category=\"all\""  + "  --signalnorm=0.00000824176"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=flat  --outdir=flat_fit " + ";"
-        #pass
+        #command+="./makeTheCard.py --selection=\'bdt_cv > %s\'"%bdt_cut   + " --category=\"all\""  + "  --signalnorm=0.00000824176"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=flat  --outdir=flat_fit " + ";"
+        pass
     
-    print command
+    print(command)
     os.system(command)
