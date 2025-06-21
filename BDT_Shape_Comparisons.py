@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 import ROOT
 from ROOT import TFile, TTree, TCanvas, TGraph, TMultiGraph, TGraphErrors, TLegend, TPaveLabel, TPaveText, TLatex
@@ -46,43 +46,64 @@ class BDT_Shape_Comparisons:
         
         
         
-        
-        
-        def Compare_BDT_Scores_MultipleDatasets(self, datafiles, categ):
+        def Compare_BDT_Scores_MultipleDatasets(self, datafiles, categ, isMC=False):
             frame = ROOT.RooRealVar('bdt_cv', 'BDT Score', -1, 1).frame()
             colors = [ROOT.kBlack, ROOT.kRed, ROOT.kBlue, ROOT.kGreen+2, ROOT.kMagenta]
             
             labels = ["old", "new"]
             
+            # Map categ to treename and LaTeX-style label
+            if categ == 'taue':
+                treename = 'ztau3mutaue'
+                cat_label = r"#tau_{e}"
+            elif categ == 'taumu':
+                treename = 'ztau3mutaumu'
+                cat_label = r"#tau_{#mu}"
+            elif categ == 'tauhA':
+                treename = 'ztau3mutauh_A'
+                cat_label = r"#tau_{h,1-prong}"
+            elif categ == 'tauhB':
+                treename = 'ztau3mutauh_B'
+                cat_label = r"#tau_{h,3-prong}"
+            elif categ == 'all':
+                treename = 'ztautau'
+                cat_label = "Inclusive"
+            else:
+                treename = categ
+                cat_label = categ
+        
             legend = ROOT.TLegend(0.6, 0.65, 0.88, 0.88)
             legend.SetBorderSize(0)
             legend.SetFillStyle(0)
+            legend.SetHeader(cat_label, "C")
             
             for i, datafile in enumerate(datafiles):
                 MiniTreeFile = ROOT.TFile.Open(datafile)
-                tree = MiniTreeFile.Get(categ)  # e.g. 'ztau3mutauh_A'
+                tree = MiniTreeFile.Get(treename)  # e.g. 'ztau3mutauh_A'
                 
                 # Define all variables only once
-                bdt_cv = ROOT.RooRealVar("bdt_cv", "bdt_cv", -1.0, 1.0)
-                tripletMass = ROOT.RooRealVar('tripletMass', '3#mu mass', 1.6, 2.0)
+                bdt_cv = ROOT.RooRealVar("bdt_cv", "bdt_cv", -1.01, 1.01)
+                tripletMass = ROOT.RooRealVar('tripletMass', '3#mu mass', 0, 100)
                 isMC = ROOT.RooRealVar("isMC", "isMC", 0, 1000000)
                 weight = ROOT.RooRealVar("weight", "weight", 0, 5)
-                dimu_OS1 = ROOT.RooRealVar('dimu_OS1', 'dimu_OS1', 0, 5)
-                dimu_OS2 = ROOT.RooRealVar('dimu_OS2', 'dimu_OS2', 0, 5)
+                dimu_OS1 = ROOT.RooRealVar('dimu_OS1', 'dimu_OS1', 0, 1000)
+                dimu_OS2 = ROOT.RooRealVar('dimu_OS2', 'dimu_OS2', 0, 1000)
                 
-                #need to make changes so that mc bkg is not in the dataset
+                # Choose data or mc without weights
                 
-                variables = ROOT.RooArgSet(tripletMass, bdt_cv, isMC, weight, dimu_OS1, dimu_OS2)
-                selector_str = "isMC == 0"
-                #selector_str = "(isMC == 211 | isMC == 210231 | isMC == 210232 | isMC == 210233 )"
-                dataset_unweighted = ROOT.RooDataSet("data_{0}".format(i), "data_{0}".format(i), tree, variables, selector_str, "weight")
+                variables_noweight = ROOT.RooArgSet(tripletMass, bdt_cv, isMC, weight, dimu_OS1, dimu_OS2)
+                selector_str = "isMC == 0" if not isMC else "( isMC == 211 || isMC == 210231 || isMC == 210232 || isMC == 210233 )"
+                dataset_unweighted = ROOT.RooDataSet("data_{0}".format(i), "data_{0}".format(i), tree, variables_noweight, selector_str)
                 
+                
+                # Normalizing the samples to 1.0
                 norm_factor = 1.0 / dataset_unweighted.numEntries()
-                #print("dataset entries: ",dataset.numEntries())
-                scale = ROOT.RooRealVar('scale', 'scale', norm_factor)
-                variables = ROOT.RooArgSet(tripletMass, bdt_cv, isMC, weight, dimu_OS1, dimu_OS2, scale)
+                print("dataset entries: ",dataset_unweighted.numEntries())
+                scale = ROOT.RooRealVar("scale", "scale", norm_factor)
+                dataset_vars = dataset_unweighted.get()
+                dataset_vars.add(scale)
                 
-                dataset = ROOT.RooDataSet("data_{0}".format(i), "data_{0}".format(i), tree, variables, selector_str, 'scale')
+                dataset = ROOT.RooDataSet("scaled_ds", "scaled_ds",dataset_unweighted,dataset_vars,"","scale")
                 
                 curve_name = "curve_%d" % i
                 dataset.plotOn(
@@ -101,9 +122,10 @@ class BDT_Shape_Comparisons:
             frame.SetTitle("BDT score comparison")
             frame.Draw()
             legend.Draw()
-            #ROOT.gPad.SaveAs("bdt_score_comparison_datasets_%s.png" % categ)
-            #ROOT.gPad.SaveAs("bdt_score_comparison_datasets_mc_%s.png" % categ)
-            ROOT.gPad.SaveAs("bdt_score_comparison_datasets_data_%s.png" % categ)
+            
+            tag = "mc" if isMC else "data"
+            output_name = "bdt_score_comparison_datasets_%s_%s.png" % (tag, categ)
+            ROOT.gPad.SaveAs(output_name)
         
         
         
@@ -220,7 +242,6 @@ class BDT_Shape_Comparisons:
             
         
         
-        
         def BDT_Shape_Comparisons(self,datafile,categ):
                 
                 fit_range_lo = 1.6
@@ -287,28 +308,28 @@ class BDT_Shape_Comparisons:
                 
                 BDT_Score_Min=-0.3
                 
-                BlindDataSelector = RooFormulaVar('DataSelector', 'DataSelector', phivetoes+omegavetoes+' isMC == 0 & (tripletMass<=%s || tripletMass>=%s) & (tripletMass>=%s & tripletMass<=%s) ' %(signal_range_lo,signal_range_hi,fit_range_lo,fit_range_hi) , RooArgList(variables))
+                BlindDataSelector = ROOT.RooFormulaVar('DataSelector', 'DataSelector', phivetoes+omegavetoes+' isMC == 0 & (tripletMass<=%s || tripletMass>=%s) & (tripletMass>=%s & tripletMass<=%s) ' %(signal_range_lo,signal_range_hi,fit_range_lo,fit_range_hi) , ROOT.RooArgList(variables))
                 
-                fulldata = RooDataSet('data', 'data', tree,  variables, BlindDataSelector)
+                fulldata = ROOT.RooDataSet('data', 'data', tree,  variables, BlindDataSelector)
                 
                 self.bdt_cv.setRange("BDT_Fit_Range", BDT_Score_Min, 1.0);
                 
-                self.a = RooRealVar("a", "a", 1.0, 0.0, 10.0)
-                self.b = RooRealVar("b", "b", 1.0, -10.0, 10.0)
-                self.c = RooRealVar("c", "c", 1.0, -10.0, 10.0)
-                self.d = RooRealVar("d", "d", 1.0, -10.0, 10.0)
+                self.a = ROOT.RooRealVar("a", "a", 1.0, 0.0, 10.0)
+                self.b = ROOT.RooRealVar("b", "b", 1.0, -10.0, 10.0)
+                self.c = ROOT.RooRealVar("c", "c", 1.0, -10.0, 10.0)
+                self.d = ROOT.RooRealVar("d", "d", 1.0, -10.0, 10.0)
                 
-                #quadratic = RooFormulaVar("quadratic", "a + b*self.bdt_cv + c*self.bdt_cv*self.bdt_cv", RooArgList(a, b, c, self.bdt_cv))
-                #expModel = RooGenericPdf("expModel", "exp(quadratic)", RooArgList(quadratic)) #Exponential of the quadratic polynomial
+                #quadratic = ROOT.RooFormulaVar("quadratic", "a + b*self.bdt_cv + c*self.bdt_cv*self.bdt_cv", ROOT.RooArgList(a, b, c, self.bdt_cv))
+                #expModel = ROOT.RooGenericPdf("expModel", "exp(quadratic)", ROOT.RooArgList(quadratic)) #Exponential of the quadratic polynomial
                 
-                self.quadratic = RooFormulaVar("quadratic", "a + b*bdt_cv + c*bdt_cv*bdt_cv + d*bdt_cv*bdt_cv*bdt_cv", RooArgList(self.a, self.b, self.c, self.d, self.bdt_cv))
-                self.expModel = RooGenericPdf("expModel", "exp(quadratic)", RooArgList(self.quadratic)) #Exponential of the cubic polynomial
+                self.quadratic = ROOT.RooFormulaVar("quadratic", "a + b*bdt_cv + c*bdt_cv*bdt_cv + d*bdt_cv*bdt_cv*bdt_cv", ROOT.RooArgList(self.a, self.b, self.c, self.d, self.bdt_cv))
+                self.expModel = ROOT.RooGenericPdf("expModel", "exp(quadratic)", ROOT.RooArgList(self.quadratic)) #Exponential of the cubic polynomial
                 
-                self.BDTNorm = RooRealVar("BDTNorm", "BDTNorm", 500.0, 0.1, 1000000000)
-                self.BDT_distribution = RooAddPdf("BDT_distribution", "BDT_distribution",RooArgList(self.expModel), RooArgList(self.BDTNorm))
-                #BDT_distribution = RooAddPdf("BDT_distribution", "BDT_distribution",RooArgList(quadratic), RooArgList(BDTNorm))
+                self.BDTNorm = ROOT.RooRealVar("BDTNorm", "BDTNorm", 500.0, 0.1, 1000000000)
+                self.BDT_distribution = ROOT.RooAddPdf("BDT_distribution", "BDT_distribution",ROOT.RooArgList(self.expModel), ROOT.RooArgList(self.BDTNorm))
+                #BDT_distribution = ROOT.RooAddPdf("BDT_distribution", "BDT_distribution",ROOT.RooArgList(quadratic), ROOT.RooArgList(BDTNorm))
                 
-                results_pdf = self.BDT_distribution.fitTo(fulldata, RooFit.Range('BDT_Fit_Range'), RooFit.Save())
+                results_pdf = self.BDT_distribution.fitTo(fulldata, ROOT.RooFit.Range('BDT_Fit_Range'), ROOT.RooFit.Save())
                 results_pdf.Print()
                 
                 
@@ -316,22 +337,22 @@ class BDT_Shape_Comparisons:
                 
                 # For fitting BDT Output in Signal
                 
-                self.MCSelector = RooFormulaVar('MCSelector', 'MCSelector', phivetoes+omegavetoes+' isMC !=0 & (isMC == 211 | isMC == 210231 | isMC == 210232 | isMC == 210233 ) & (tripletMass>=%s & tripletMass<=%s) ' %(fit_range_lo,fit_range_hi) , RooArgList(variables))
+                self.MCSelector = ROOT.RooFormulaVar('MCSelector', 'MCSelector', phivetoes+omegavetoes+' isMC !=0 & (isMC == 211 | isMC == 210231 | isMC == 210232 | isMC == 210233 ) & (tripletMass>=%s & tripletMass<=%s) ' %(fit_range_lo,fit_range_hi) , ROOT.RooArgList(variables))
                 
-                self.fullmc = RooDataSet('mc', 'mc', tree, variables, self.MCSelector,'scale')
+                self.fullmc = ROOT.RooDataSet('mc', 'mc', tree, variables, self.MCSelector,'scale')
                 
                 self.bdt_cv.setRange("BDT_MC_Fit_Range", -1.0, 1.0);
                 
-                self.bgausmeanMC = RooRealVar("bgausmeanMC", "bgausmeanMC", 0.5, 0.0, 0.9)
-                self.bgaussigmaMC_a = RooRealVar("bgaussigmaMC_a", "bgaussigmaMC_a", 0.2, 0.000001, 1.0)
-                self.bgaussigmaMC_b = RooRealVar("bgaussigmaMC_b", "bgaussigmaMC_b", 0.2, 0.000001, 1.0)
+                self.bgausmeanMC = ROOT.RooRealVar("bgausmeanMC", "bgausmeanMC", 0.5, 0.0, 0.9)
+                self.bgaussigmaMC_a = ROOT.RooRealVar("bgaussigmaMC_a", "bgaussigmaMC_a", 0.2, 0.000001, 1.0)
+                self.bgaussigmaMC_b = ROOT.RooRealVar("bgaussigmaMC_b", "bgaussigmaMC_b", 0.2, 0.000001, 1.0)
                 
-                self.bgaus_distMC = RooBifurGauss("bgaus_distMC", "bgaus dist MC", self.bdt_cv, self.bgausmeanMC, self.bgaussigmaMC_a, self.bgaussigmaMC_b)
+                self.bgaus_distMC = ROOT.RooBifurGauss("bgaus_distMC", "bgaus dist MC", self.bdt_cv, self.bgausmeanMC, self.bgaussigmaMC_a, self.bgaussigmaMC_b)
                 
-                self.BDTNorm_MC = RooRealVar("BDTNorm_MC", "BDTNorm_MC", 500.0, 0.1, 50000)
-                self.BDT_distribution_MC = RooAddPdf("BDT_distribution", "BDT_distribution",RooArgList(self.bgaus_distMC), RooArgList(self.BDTNorm_MC))
+                self.BDTNorm_MC = ROOT.RooRealVar("BDTNorm_MC", "BDTNorm_MC", 500.0, 0.1, 50000)
+                self.BDT_distribution_MC = ROOT.RooAddPdf("BDT_distribution", "BDT_distribution",ROOT.RooArgList(self.bgaus_distMC), ROOT.RooArgList(self.BDTNorm_MC))
                 
-                results_mcpdf = self.BDT_distribution_MC.fitTo(self.fullmc, RooFit.Range('BDT_MC_Fit_Range'), RooFit.Save())
+                results_mcpdf = self.BDT_distribution_MC.fitTo(self.fullmc, ROOT.RooFit.Range('BDT_MC_Fit_Range'), ROOT.RooFit.Save())
                 results_mcpdf.Print()
                 
                 
@@ -388,7 +409,7 @@ class BDT_Shape_Comparisons:
                 ROOT.gPad.SetLogy(0)
                 
                 
-                #print "Certain BDT cut: ", self.fullmc.reduce('bdt_cv > 0.5').sumEntries()
+                #print("Certain BDT cut: ", self.fullmc.reduce('bdt_cv > 0.5').sumEntries())
                 
                 
                 return frame1, frame2, self.fullmc, fulldata
@@ -399,7 +420,6 @@ class BDT_Shape_Comparisons:
 
 
 
-                        
 if __name__ == "__main__":
     
         ROOT.gROOT.SetBatch(True)
@@ -473,7 +493,7 @@ if __name__ == "__main__":
                 tree = 'ztautau'
         
             # 1. Compare different datasets (same selection)
-            BDTPlotter.Compare_BDT_Scores_MultipleDatasets(dataset_files, tree)
+            BDTPlotter.Compare_BDT_Scores_MultipleDatasets(dataset_files, categ, True)
         
             # 2. Compare different selections on the same file
             # Pick any one file as reference (e.g., A)
