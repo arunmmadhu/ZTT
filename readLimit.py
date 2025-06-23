@@ -265,8 +265,8 @@ def main():
     #bdt_cuts = [-0.4,  -0.2,  0.00, 0.1, 0.2, 0.3, 0.31, 0.32, 0.33, 0.34, 0.35, 0.36, 0.37, 0.38, 0.39,  0.4, 0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.47, 0.48, 0.49, 0.5, 0.6, 0.7]      # a few entries for test
     #bdt_cuts = [-0.4,  -0.2,  0.00, 0.1, 0.2, 0.3, 0.31, 0.32, 0.33, 0.34, 0.35, 0.36, 0.37]      # a few entries for test
 
-    categories = ['taue','taumu','tauhA','tauhB','all']
-#    categories = ['tauhB']
+#    categories = ['taue','taumu','tauhA','tauhB','all']
+    categories = ['tauhB']
 #    categories = ['taue','taumu','tauhA','all']
 
     bdt_cuts_taue = generate_bdt_cuts(-0.2, 0.6, 0.2)
@@ -301,9 +301,9 @@ def main():
         print("labels", labels)
         print("prefix", cat)
 #        executeDataCards(labels,values,cat)
-#        executeDataCards_onCondor(labels,values,cat)
+        executeDataCards_onCondor(labels,values,cat)
 
-        plotUpperLimits(labels,values,cat,outputLabel)
+#        plotUpperLimits(labels,values,cat,outputLabel)
  
  
  

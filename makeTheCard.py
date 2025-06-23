@@ -168,13 +168,16 @@ variables.add(dimu_OS2)
 variables.add(event_weight)
 variables.add(category)
 variables.add(isMC)
-variables.add(scale)
 
 
 MCSelector = ROOT.RooFormulaVar('MCSelector', 'MCSelector', selection + ' & isMC !=0 & (isMC == 211 | isMC == 210231 | isMC == 210232 | isMC == 210233 ) ', ROOT.RooArgList(variables))
 
 
-fullmc = ROOT.RooDataSet('mc', 'mc', tree, variables, MCSelector,'scale')
+fullmc_unweighted = ROOT.RooDataSet('mc_unweighted', 'mc_unweighted', tree, variables, MCSelector)
+dataset_vars = fullmc_unweighted.get()
+dataset_vars.add(scale)
+
+fullmc = ROOT.RooDataSet('mc', 'mc', fullmc_unweighted, dataset_vars, "",'scale')
 
 
 frame = tripletMass.frame()
