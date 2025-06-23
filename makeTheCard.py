@@ -446,9 +446,9 @@ rate                                   {SignalIntegral:.4f}        {nbkg.getVal(
 --------------------------------------------------------------------------------
 lumi              lnN                       1.025               -
 Zxs               lnN                       1.0249              -
-BrTauX            lnN                       1.0{br}        -
+Br_{args.category}            lnN                       1.0{br}        -
 extrap_factor_{args.category}     gmN     {fulldata.numEntries():.0f}    -             {exp_fact:.6f}
-extrap_factor_unc lnN                       -                   {exp_uncert:.3f}
+extrap_factor_unc_{args.category}    lnN                       -                   {exp_uncert:.3f}
 --------------------------------------------------------------------------------
 '''
     )
