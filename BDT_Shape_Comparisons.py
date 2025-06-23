@@ -438,15 +438,15 @@ class BDT_Shape_Comparisons:
                 variables.add(isMC)
                 variables.add(scale)
                 
-                phivetoes="(fabs(dimu_OS1 - 1.020)>0.020)&(fabs(dimu_OS2 - 1.020)>0.020)"
-                omegavetoes="&fabs(dimu_OS1 - 0.782)>0.020&fabs(dimu_OS2 - 0.782)>0.020&"
+                phivetoes="(fabs(dimu_OS1 - 1.020)>0.020)&(fabs(dimu_OS2 - 1.020)>0.020)&"
+                omegavetoes="fabs(dimu_OS1 - 0.782)>0.020&fabs(dimu_OS2 - 0.782)>0.020&"
                 
                 
                 # For fitting BDT Output in Data
                 
                 BDT_Score_Min=-0.3
                 
-                BlindDataSelector = ROOT.RooFormulaVar('DataSelector', 'DataSelector', phivetoes+omegavetoes+' isMC == 0 & (tripletMass<=%s || tripletMass>=%s) & (tripletMass>=%s & tripletMass<=%s) ' %(signal_range_lo,signal_range_hi,fit_range_lo,fit_range_hi) , ROOT.RooArgList(variables))
+                BlindDataSelector = ROOT.RooFormulaVar('DataSelector', 'DataSelector', phivetoes+' isMC == 0 & (tripletMass<=%s || tripletMass>=%s) & (tripletMass>=%s & tripletMass<=%s) ' %(signal_range_lo,signal_range_hi,fit_range_lo,fit_range_hi) , ROOT.RooArgList(variables))
                 
                 fulldata = ROOT.RooDataSet('data', 'data', tree,  variables, BlindDataSelector)
                 
@@ -475,7 +475,7 @@ class BDT_Shape_Comparisons:
                 
                 # For fitting BDT Output in Signal
                 
-                self.MCSelector = ROOT.RooFormulaVar('MCSelector', 'MCSelector', phivetoes+omegavetoes+' isMC !=0 & (isMC == 211 | isMC == 210231 | isMC == 210232 | isMC == 210233 ) & (tripletMass>=%s & tripletMass<=%s) ' %(fit_range_lo,fit_range_hi) , ROOT.RooArgList(variables))
+                self.MCSelector = ROOT.RooFormulaVar('MCSelector', 'MCSelector', phivetoes+' isMC !=0 & (isMC == 211 | isMC == 210231 | isMC == 210232 | isMC == 210233 ) & (tripletMass>=%s & tripletMass<=%s) ' %(fit_range_lo,fit_range_hi) , ROOT.RooArgList(variables))
                 
                 self.fullmc = ROOT.RooDataSet('mc', 'mc', tree, variables, self.MCSelector,'scale')
                 

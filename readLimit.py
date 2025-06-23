@@ -301,9 +301,9 @@ def main():
         print("labels", labels)
         print("prefix", cat)
 #        executeDataCards(labels,values,cat)
-        executeDataCards_onCondor(labels,values,cat)
+#        executeDataCards_onCondor(labels,values,cat)
 
-#        plotUpperLimits(labels,values,cat,outputLabel)
+        plotUpperLimits(labels,values,cat,outputLabel)
  
  
  
