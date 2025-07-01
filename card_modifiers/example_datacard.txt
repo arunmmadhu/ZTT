@@ -1,0 +1,19 @@
+# Simple counting experiment, with one signal and a process
+imax 1  number of channels
+jmax 1  number of backgrounds
+kmax 1  number of nuisance parameters (sources of systematical uncertainties)
+------------
+# we have just one channel, in which we observe 0 events
+bin bin1
+observation -1
+------------
+# now we list the expected events for signal and all backgrounds in that bin
+# the second 'process' line must have a positive number for backgrounds, and 0 for signal
+# then we list the independent sources of uncertainties, and give their effect (syst. error)
+# on each process and bin
+bin             bin1     bin1
+process        signal   backg
+process          0        1
+rate           0.228188   0.0813847
+------------
+lumi    lnN    1.025    -    lumi affects signal. lnN = lognormal
