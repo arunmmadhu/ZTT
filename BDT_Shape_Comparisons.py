@@ -609,26 +609,32 @@ class BDT_Shape_Comparisons:
                         pdfmodel = ROOT.RooAddPdf('bkg_extended_expo', 'bkg_extended_expo', ROOT.RooArgList(expo), ROOT.RooArgList(nbkg))
                         results_pdf = pdfmodel.fitTo(fulldata, ROOT.RooFit.Range('left,right'), ROOT.RooFit.Save())
                         
+                        SG_abs = pdfmodel.createIntegral(ROOT.RooArgSet(tripletMass), ROOT.RooArgSet(tripletMass), "SIG")
+                        SB_abs = pdfmodel.createIntegral(ROOT.RooArgSet(tripletMass), ROOT.RooArgSet(tripletMass), "left,right")
                         
-                        SG_abs = pdfmodel.createIntegral(ROOT.RooArgSet(tripletMass), ROOT.RooFit.Range("SIG"))
-                        SB_abs = pdfmodel.createIntegral(ROOT.RooArgSet(tripletMass), ROOT.RooFit.Range("left,right"))
+                        SG_abs_withNorm = ROOT.RooProduct("SG_abs_withNorm", "SG_abs_withNorm",ROOT.RooArgList(nbkg.getVal(), SG_abs))
+                        SB_abs_withNorm = ROOT.RooProduct("SB_abs_withNorm", "SB_abs_withNorm",ROOT.RooArgList(nbkg.getVal(), SB_abs))
                         
                         # Get their values
-                        SG_integral = SG_abs.getVal()
-                        SB_integral = SB_abs.getVal()
-                        Ratio_val = SG_integral / SB_integral if SB_integral > 0 else 0
+                        SG_integral = SG_abs_withNorm.getVal()
+                        SB_integral = SB_abs_withNorm.getVal()
                         
-                        # Compute propagated errors from fit result
-                        SG_error = SG_abs.getPropagatedError(results_pdf)
-                        SB_error = SB_abs.getPropagatedError(results_pdf)
+                        if SB_integral > 0:
+                                inputs = ROOT.RooArgList(SG_abs_withNorm, SB_abs_withNorm)
+                                ratio_formula = ROOT.RooFormulaVar("ratio", "(@0)/(@1)", inputs)
+                                Ratio_val = ratio_formula.getVal()
+                        else:
+                                Ratio_val = 0
                         
-                        # Propagate the error on the ratio manually
+                        # Propagate the error on the ratio
                         if SG_integral > 0 and SB_integral > 0:
-                            Ratio_error = Ratio_val * ((SG_error / SG_integral)**2 + (SB_error / SB_integral)**2)**0.5
+                            #Ratio_error = ((SG_error / SB_integral)**2 + (SG_integral * SB_error / SB_integral**2)**2)**0.5
+                            Ratio_error = ratio_formula.getPropagatedError(results_pdf)
                         else:
                             Ratio_error = 0.0
                             
-                        print(f"[{bdt_cut:.3f}] SG: {SG_integral:.5g} +/- {SG_error:.2g}, SB: {SB_integral:.5g} +/- {SB_error:.2g}")
+                        #print(f"[{bdt_cut:.3f}] SG: {SG_integral:.5g} +/- {SG_error:.2g}, SB: {SB_integral:.5g} +/- {SB_error:.2g}, nbk: {nbkg.getVal():.5g}")
+                        print(f"[{bdt_cut:.3f}] SG: {SG_integral:.5g}, SB: {SB_integral:.5g}, nbk: {nbkg.getVal():.5g}, ratio: {Ratio_val:.5g}, ratio error: {Ratio_error:.5g}")
                         
                         
                         
@@ -852,9 +858,9 @@ if __name__ == "__main__":
         datafile_ZTTmass = "../../Combine_Tree_ztau3mutau_ZTTMass_origTracker_PostBDT.root"
         
         # Categories to loop over
-        categories = ['taue', 'taumu', 'tauhA', 'tauhB','all']
+        #categories = ['taue', 'taumu', 'tauhA', 'tauhB','all']
         #categories = ['taue', 'taumu', 'tauhA', 'tauhB']
-        #categories = ['taue']
+        categories = ['tauhB']
         
         # Example BDT selections you want to compare
         bdt_selections = [
@@ -905,10 +911,10 @@ if __name__ == "__main__":
             #BDTPlotter.Compare_BDT_Scores_MultipleDatasetsAndSelections(dataset_files, datafile, categ, bdt_selections, selection_labels, isMC=True)
             
             # 4. Full comparison: different files + different selections on same file
-            BDTPlotter.Compare_BDT_Scores_MultipleDatasetsAndSelectionsZTTMass(dataset_files, datafile_ZTTmass, categ, bdt_selections, selection_labels, True)
+            #BDTPlotter.Compare_BDT_Scores_MultipleDatasetsAndSelectionsZTTMass(dataset_files, datafile_ZTTmass, categ, bdt_selections, selection_labels, True)
             
             # 5. Constancy of 'r' plots
-            #BDTPlotter.Plot_Bdt_Symmetry(datafile, categ, False)
+            BDTPlotter.Plot_Bdt_Symmetry(datafile, categ, False)
             
             # 6. Get signal peak width
             #BDTPlotter.get_signal_window(datafile, categ, False)
