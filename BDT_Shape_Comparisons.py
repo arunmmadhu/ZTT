@@ -251,7 +251,7 @@ class BDT_Shape_Comparisons:
         
         
         
-        def Compare_BDT_Scores_MultipleDatasetsAndSelections(self, datafiles, datafile, categ, selection_list, labels, isMC=False):
+        def Compare_BDT_Scores_MultipleDatasetsAndSelections(self, datafiles, datafile, categ, selection_list, labels, WhetherMC=False):
             frame = ROOT.RooRealVar('bdt_cv', 'BDT Score', -1, 1).frame()
             colors = [ROOT.kBlack, ROOT.kRed, ROOT.kBlue, ROOT.kGreen+2, ROOT.kMagenta, ROOT.kOrange+7]
             
@@ -295,7 +295,7 @@ class BDT_Shape_Comparisons:
                 MiniTreeFile = ROOT.TFile.Open(datafile_in)
                 tree = MiniTreeFile.Get(treename)
                 
-                selector_str = "isMC == 0" if not isMC else "( isMC == 211 || isMC == 210231 || isMC == 210232 || isMC == 210233 )"
+                selector_str = "isMC == 0" if not WhetherMC else "( isMC == 211 || isMC == 210231 || isMC == 210232 || isMC == 210233 )"
                 dataset_unweighted = ROOT.RooDataSet("data_%d_raw" % i, "data_%d_raw" % i, tree, base_vars, selector_str)
                 
                 entries = dataset_unweighted.numEntries()
@@ -327,8 +327,8 @@ class BDT_Shape_Comparisons:
             tree = MiniTreeFile.Get(treename)
             
             for j, selection in enumerate(selection_list):
-                selector_str = "isMC == 0" if not isMC else "( isMC == 211 || isMC == 210231 || isMC == 210232 || isMC == 210233 )"
-                fullcut = "({}) && ({})".format(selector_str, selection)
+                selector_str = "isMC == 0" if not WhetherMC else "( isMC == 211 || isMC == 210231 || isMC == 210232 || isMC == 210233 )"
+                fullcut = "({}) ".format(selection)
                 
                 dataset_unweighted = ROOT.RooDataSet("sel_%d_raw" % j, "sel_%d_raw" % j, tree, base_vars, fullcut)
                 
@@ -379,7 +379,132 @@ class BDT_Shape_Comparisons:
             ROOT.gPad.SaveAs(output_name)
             
         
+        def Compare_BDT_Scores_MultipleDatasetsAndSelectionsZTTMass(self, datafiles, datafile, categ, selection_list, labels, WhetherMC=True):
+            frame = ROOT.RooRealVar('bdt_cv', 'BDT Score', -1, 1).frame()
+            colors = [ROOT.kBlack, ROOT.kRed, ROOT.kBlue, ROOT.kGreen+2, ROOT.kMagenta, ROOT.kOrange+7]
+            
+            # Map categ to tree name and label
+            if categ == 'taue':
+                treename = 'ztau3mutaue'
+                cat_label = r"#tau_{e}"
+            elif categ == 'taumu':
+                treename = 'ztau3mutaumu'
+                cat_label = r"#tau_{#mu}"
+            elif categ == 'tauhA':
+                treename = 'ztau3mutauh_A'
+                cat_label = r"#tau_{h,1-prong}"
+            elif categ == 'tauhB':
+                treename = 'ztau3mutauh_B'
+                cat_label = r"#tau_{h,3-prong}"
+            elif categ == 'all':
+                treename = 'ztautau'
+                cat_label = "Inclusive"
+            else:
+                treename = categ
+                cat_label = categ
+                
+            legend = ROOT.TLegend(0.3, 0.3, 0.55, 0.55)
+            legend.SetBorderSize(0)
+            legend.SetFillStyle(0)
+            legend.SetHeader(cat_label, "C")
+            
+            # Common variables
+            bdt_cv = ROOT.RooRealVar("bdt_cv", "bdt_cv", -1.01, 1.01)
+            tripletMass = ROOT.RooRealVar('tripletMass', '3#mu mass', 0, 100)
+            isMC = ROOT.RooRealVar("isMC", "isMC", 0, 1000000)
+            weight = ROOT.RooRealVar("weight", "weight", 0, 5)
+            dimu_OS1 = ROOT.RooRealVar('dimu_OS1', 'dimu_OS1', 0, 1000)
+            dimu_OS2 = ROOT.RooRealVar('dimu_OS2', 'dimu_OS2', 0, 1000)
+            
+            base_vars = ROOT.RooArgSet(tripletMass, bdt_cv, isMC, weight, dimu_OS1, dimu_OS2)
+            
+            # -- First: compare multiple datasets (e.g., old/new)
+            for i, datafile_in in enumerate(datafiles):
+                MiniTreeFile = ROOT.TFile.Open(datafile_in)
+                tree = MiniTreeFile.Get(treename)
+                
+                selector_str = "isMC == 0" if not WhetherMC else "( isMC == 211 || isMC == 210231 || isMC == 210232 || isMC == 210233 )"
+                dataset_unweighted = ROOT.RooDataSet("data_%d_raw" % i, "data_%d_raw" % i, tree, base_vars, selector_str)
+                
+                entries = dataset_unweighted.numEntries()
+                if entries == 0:
+                    print("WARNING: No entries in dataset:", datafile_in)
+                    continue
+                    
+                norm_factor = 1.0 / entries
+                scale = ROOT.RooRealVar("scale", "scale", norm_factor)
+                dataset_vars = dataset_unweighted.get()
+                dataset_vars.add(scale)
+                
+                dataset = ROOT.RooDataSet("scaled_ds_%d" % i, "scaled_ds_%d" % i, dataset_unweighted, dataset_vars, "", "scale")
+                
+                curve_name = "ds_curve_%d" % i
+                dataset.plotOn(
+                    frame,
+                    ROOT.RooFit.Binning(100),
+                    ROOT.RooFit.MarkerColor(colors[i % len(colors)]),
+                    ROOT.RooFit.LineColor(colors[i % len(colors)]),
+                    ROOT.RooFit.MarkerStyle(20 + i),
+                    ROOT.RooFit.MarkerSize(0.75),
+                    ROOT.RooFit.Name(curve_name)
+                )
+                legend.AddEntry(frame.findObject(curve_name), r"m_{#tau} = 1.777", "lep")
+                
+            # -- Second: compare multiple selections on a single dataset
+            MiniTreeFile = ROOT.TFile.Open(datafile)
+            tree = MiniTreeFile.Get(treename)
+            
+            for j, selection in enumerate(selection_list):
+                selector_str = "isMC == 0" if not WhetherMC else "( isMC == 211 || isMC == 210231 || isMC == 210232 || isMC == 210233 )"
+                fullcut = "({}) ".format(selection)
+                
+                dataset_unweighted = ROOT.RooDataSet("sel_%d_raw" % j, "sel_%d_raw" % j, tree, base_vars, fullcut)
+                
+                entries = dataset_unweighted.numEntries()
+                if entries == 0:
+                    print("WARNING: No entries for selection:", selection)
+                    continue
+                    
+                norm_factor = 1.0 / entries
+                scale = ROOT.RooRealVar("scale", "scale", norm_factor)
+                dataset_vars = dataset_unweighted.get()
+                dataset_vars.add(scale)
+                
+                dataset = ROOT.RooDataSet("sel_%d" % j, "sel_%d" % j, dataset_unweighted, dataset_vars, "", "scale")
+                
+                curve_name = "sel_curve_%d" % j
+                dataset.plotOn(
+                    frame,
+                    ROOT.RooFit.Binning(100),
+                    ROOT.RooFit.MarkerColor(colors[(j + len(datafiles)) % len(colors)]),
+                    ROOT.RooFit.LineColor(colors[(j + len(datafiles)) % len(colors)]),
+                    ROOT.RooFit.MarkerStyle(24 + j),
+                    ROOT.RooFit.MarkerSize(0.75),
+                    ROOT.RooFit.Name(curve_name)
+                )
+                legend.AddEntry(frame.findObject(curve_name), labels[j], "lep")
+                
+            bdt_canvas = ROOT.TCanvas("bdt_canvas", "bdt_canvas", 800, 800)
+            bdt_canvas.cd()
+            bdt_canvas.SetLeftMargin( L/W )
+            bdt_canvas.SetRightMargin( R/W )
+            bdt_canvas.SetTopMargin( T/H )
+            bdt_canvas.SetBottomMargin( B/H )
+            frame.GetXaxis().SetTitle("BDT score")
+            frame.GetXaxis().SetNdivisions(505)
+            frame.GetYaxis().SetTitleOffset(1.6)
+            frame.GetYaxis().SetNdivisions(505)
+            frame.SetTitle("BDT score: Combined Comparison")
+            frame.Draw()
+            legend.Draw()
+            CMSStyle.CMS_lumi(bdt_canvas, 5, 11)
+            bdt_canvas.Update()
+            
+            
         
+            tag = "mc" if isMC else "data"
+            output_name = "bdt_score_comparison_combined_%s_%s.png" % (tag, categ)
+            ROOT.gPad.SaveAs(output_name)
         
         
         
@@ -548,27 +673,27 @@ class BDT_Shape_Comparisons:
                         treeName  = 'ztau3mutaue'
                         signalnorm = 0.00000856928
                         cat_label = r"$\tau_{e}$"
-                        bdt_cut = 0.28
+                        #bdt_cut = 0.28
                 if(categ == 'taumu'):
                         treeName = 'ztau3mutaumu'
                         signalnorm = 0.00000822810
                         cat_label = r"$\tau_{\mu}$"
-                        bdt_cut = 0.44
+                        #bdt_cut = 0.44
                 if(categ == 'tauhA'):
                         treeName = 'ztau3mutauh_A'
                         signalnorm = 0.00000815958
                         cat_label = r"$\tau_{h,1-prong}$"
-                        bdt_cut = 0.38
+                        #bdt_cut = 0.38
                 if(categ == 'tauhB'):
                         treeName = 'ztau3mutauh_B'
                         signalnorm = 0.00000815958
                         cat_label = r"$\tau_{h,3-prong}$"
-                        bdt_cut = 0.15
+                        #bdt_cut = 0.15
                 if(categ == 'all'):
                         treeName   = 'ztautau'
                         signalnorm = 0.00000824176
                         cat_label = "Inclusive"
-                        bdt_cut = 0.59
+                        #bdt_cut = 0.59
                 
                 tree = MiniTreeFile.Get(treeName)
                 
@@ -599,7 +724,7 @@ class BDT_Shape_Comparisons:
                 
                 MCSelector = RooFormulaVar('MCSelector', 'MCSelector', ' bdt_cv > ' + str(bdt_cut)+' & '+ phivetoes+' isMC !=0 & (isMC == 211 | isMC == 210231 | isMC == 210232 | isMC == 210233 ) & (tripletMass>=%s & tripletMass<=%s) ' %(signal_range_lo,signal_range_hi) , RooArgList(variables))
                 
-                fullmc_unweighted = RooDataSet('mc', 'mc', tree_norm, variables, MCSelector)
+                fullmc_unweighted = RooDataSet('mc', 'mc', tree, variables, MCSelector)
                 dataset_vars = fullmc_unweighted.get()
                 dataset_vars.add(scale)
                 
@@ -610,21 +735,14 @@ class BDT_Shape_Comparisons:
                         
                 fulldata = RooDataSet('fulldata', 'fulldata', tree,  variables, BlindDataSelector)
                 
-                tripletMass.setRange('left' , fit_range_lo    , signal_range_lo)
-                tripletMass.setRange('right', signal_range_hi , fit_range_hi)
-                tripletMass.setRange('full' , fit_range_lo    , fit_range_hi)
-                
-                tripletMass.setRange("SB1",fit_range_lo,1.75)
-                tripletMass.setRange("SB2",1.80,fit_range_hi)
                 tripletMass.setRange("fullRange",fit_range_lo,fit_range_hi)
-                tripletMass.setRange("SIG",signal_range_lo,signal_range_hi)
                 
                 mean = ROOT.RooRealVar("mean", "mean", 1.776, 0., 5.)
                 sigma = ROOT.RooRealVar("sigma", "sigma", 0.5, 0.001, 10)
-                Gauss = ROOT.RooGaussian("Gauss", "Gauss dist", InvMass, mean, sigma)
+                Gauss = ROOT.RooGaussian("Gauss", "Gauss dist", tripletMass, mean, sigma)
                 GaussNorm = ROOT.RooRealVar("GaussNorm", "GaussNorm", 0.5, 0.001, 1.0)
                 mc_pdf = ROOT.RooAddPdf("mc_pdf", "mc_pdf", ROOT.RooArgList(Gauss), ROOT.RooArgList(GaussNorm))
-                mc_fitresult = mc_pdf.fitTo(fullmc, ROOT.RooFit.Range("R3"), ROOT.RooFit.Save())
+                mc_fitresult = mc_pdf.fitTo(fullmc, ROOT.RooFit.Range("fullRange"), ROOT.RooFit.Save())
                 
                 Gaussian_Sigma_From_Loose_BDT_Cut = sigma.getVal()
                 
@@ -638,6 +756,11 @@ class BDT_Shape_Comparisons:
                 N_a = 20
                 
                 triplet_mass_bins = 40
+                
+                output_name = "limits_summary_%s.txt" % (categ)
+                
+                with open(output_name, "w") as out_file:
+                        out_file.write("sigma_scale\tmin\tmax\tsignal\tbackground\tLimit_UL_Calc\tLimit_Bayesian\n")
                 
                 for m in range(N_a):
                         step = (Xa_max - Xa_min) / N_a
@@ -664,12 +787,19 @@ class BDT_Shape_Comparisons:
                         MC_reduced_dataset = fullmc.reduce(MC_inside_peak)
                         Data_reduced_dataset = fulldata.reduce(Data_outside_peak)
                         
+                        tripletMass.setRange('left' , fit_range_lo    , signal_peak_region_min)
+                        tripletMass.setRange('right', signal_peak_region_max , fit_range_hi)
+                        tripletMass.setRange("SIG",signal_peak_region_min,signal_peak_region_max)
                         
+                        #nbkg = ROOT.RooRealVar('nbkg', 'nbkg', 1000, 0, 500000)
+                        #slope = ROOT.RooRealVar('slope', 'slope', 1.0, -100, 100)
+                        #expo = ROOT.RooExponential('bkg_expo', 'bkg_expo', tripletMass, slope)
+                        #pdfmodel = ROOT.RooAddPdf('bkg_extended_expo', 'bkg_extended_expo', ROOT.RooArgList(expo), ROOT.RooArgList(nbkg))
+                        #results_pdf = pdfmodel.fitTo(Data_reduced_dataset, ROOT.RooFit.Range('left,right'), ROOT.RooFit.Save())
                         
                         nbkg = ROOT.RooRealVar('nbkg', 'nbkg', 1000, 0, 500000)
-                        slope = ROOT.RooRealVar('slope', 'slope', 1.0, -100, 100)
-                        expo = ROOT.RooExponential('bkg_expo', 'bkg_expo', tripletMass, slope)
-                        pdfmodel = ROOT.RooAddPdf('bkg_extended_expo', 'bkg_extended_expo', ROOT.RooArgList(expo), ROOT.RooArgList(nbkg))
+                        flat = ROOT.RooPolynomial('bkg_flat', 'bkg_flat', tripletMass)
+                        pdfmodel = ROOT.RooAddPdf('bkg_extended_flat', 'bkg_extended_flat', ROOT.RooArgList(flat), ROOT.RooArgList(nbkg))
                         results_pdf = pdfmodel.fitTo(Data_reduced_dataset, ROOT.RooFit.Range('left,right'), ROOT.RooFit.Save())
                         
                         SG_integral = pdfmodel.createIntegral(ROOT.RooArgSet(tripletMass), ROOT.RooArgSet(tripletMass), "SIG").getVal()
@@ -678,31 +808,36 @@ class BDT_Shape_Comparisons:
                         N_s_1 = 0.0
                         N_b_1 = 0.0
                         
-                        N_s_1 = MC_inside_peak.sumEntries()
+                        N_s_1 = MC_reduced_dataset.sumEntries()
                         N_b_1 = nbkg.getVal()*SG_integral
                 
                         print(f"signal: {N_s_1} bkg: {N_b_1}")
                 
                         if round(N_b_1 / 0.00001) * 0.00001 > 0.0:
-                            cmd = f"python card_modifiers/card_mod.py --luminosity 59.0 --s {N_s_1} --b {N_b_1}"
+                            cmd = f"python3 card_modifiers/card_mod.py --luminosity 59.0 --s {N_s_1} --b {N_b_1}"
                             os.system(cmd)
                 
-                            cmd_bayesian = f"combine -M BayesianSimple modified_simplest_card.txt --cl 0.9 -t 100 > Test_Bayesian_Output.txt"
-                            os.system(cmd_bayesian)
-                
-                            with open(f"Test_Bayesian_Output.txt") as f:
-                                for line in f:
-                                    if "median expected limit" in line:
-                                        tokens = line.split()
-                                        print(f"Limit Bayesian: {tokens[5]}")
+                            #cmd_bayesian = f"combine -M BayesianSimple modified_simplest_card.txt --cl 0.9 -t 100 > Test_Bayesian_Output.txt"
+                            #os.system(cmd_bayesian)
+                            #
+                            #with open(f"Test_Bayesian_Output.txt") as f:
+                            #    for line in f:
+                            #        if "median expected limit" in line:
+                            #            tokens = line.split()
+                            #            print(f"Limit Bayesian: {tokens[5]}")
                 
                             cmd_ul = f"python3 ../../workdirDataWithMCSkimmed_SeparateJul_08_2024/Projections/CLs_UL_Calculator.py {N_s_1} {N_b_1} > out_UL_Calc.txt"
                             os.system(cmd_ul)
-                
-                            with open(f"out_UL_Calc.txt") as f:
+                            
+                            with open("out_UL_Calc.txt") as f:
                                 for line in f:
                                     if "upper limit" in line:
-                                        print(f"Limit UL_Calc: {line.split()[-1]}")
+                                        limit_val = line.split()[-1]
+                                        print(f"Limit UL_Calc: {limit_val}")
+                                        
+                                        with open(output_name, "a") as out_file:
+                                            out_file.write(f"{sigma_scale:.4f}\t{signal_peak_region_min:.5f}\t{signal_peak_region_max:.5f}\t{N_s_1:.3f}\t{N_b_1:.2f}\t{limit_val}\n")
+                                            #out_file.write(f"{sigma_scale:.4f}\t{signal_peak_region_min:.5f}\t{signal_peak_region_max:.5f}\t{N_s_1:.3f}\t{N_b_1:.2f}\t{limit_val}\t{tokens[5]}\n")
 
 
 
@@ -711,34 +846,41 @@ if __name__ == "__main__":
     
         ROOT.gROOT.SetBatch(True)
         
-        datafile = "../../Combine_Tree_ztau3mutau_PF_PostBDT.root"
+        datafile = "../../Combine_Tree_ztau3mutau_orig_PostBDT.root"
         
-        # Assume these methods belong to an object or class, e.g. BDTPlotter()
-        BDTPlotter = BDT_Shape_Comparisons()  # Replace this with your actual class name or self instance
+        #datafile_ZTTmass = "../../Combine_Tree_ztau3mutau_ZTTMass_PF_PostBDT.root"
+        datafile_ZTTmass = "../../Combine_Tree_ztau3mutau_ZTTMass_origTracker_PostBDT.root"
         
         # Categories to loop over
-        #categories = ['taue', 'taumu', 'tauhA', 'tauhB','all']
-        categories = ['taue']
+        categories = ['taue', 'taumu', 'tauhA', 'tauhB','all']
+        #categories = ['taue', 'taumu', 'tauhA', 'tauhB']
+        #categories = ['taue']
         
         # Example BDT selections you want to compare
         bdt_selections = [
-            "dimu_OS2 > 0.1",
-            "dimu_OS2 > 0.5",
-            "dimu_OS2 > 1.0",
-            "dimu_OS2 > 1.5"
+            "( isMC == 251 || isMC == 251231 || isMC == 251232 || isMC == 251233 )",
+            "( isMC == 252 || isMC == 252231 || isMC == 252232 || isMC == 252233 )",
+            "( isMC == 253 || isMC == 253231 || isMC == 253232 || isMC == 253233 )",
+            "( isMC == 254 || isMC == 254231 || isMC == 254232 || isMC == 254233 )",
+            "( isMC == 255 || isMC == 255231 || isMC == 255232 || isMC == 255233 )"
         ]
-        selection_labels = ["dimu cut1", "dimu cut2", "dimu cut3", "dimu cut4"]
+        
+        r"#tau_{e}"
+        selection_labels = [r"m_{#tau} = 1.65", r"m_{#tau} = 1.70", r"m_{#tau} = 1.85", r"m_{#tau} = 1.90", r"m_{#tau} = 1.95"]
         
         # Sample datasets (for Compare_BDT_Scores_MultipleDatasets)
         dataset_files = [
             "../../Combine_Tree_ztau3mutau_orig_PostBDT.root",
             #"../../Combine_Tree_ztau3mutau_PFGL_PostBDT.root",
-            "../../Combine_Tree_ztau3mutau_PF_PostBDT.root",
+            #"../../Combine_Tree_ztau3mutau_PF_PostBDT.root",
         ]
         
         # Loop over categories
         for categ in categories:
             print("Running for category: " + str(categ))
+            
+            # These methods belong to a class, BDTPlotter()
+            BDTPlotter = BDT_Shape_Comparisons()
         
             # Construct correct tree name for this category
             tree = ''
@@ -762,8 +904,11 @@ if __name__ == "__main__":
             # 3. Full comparison: different files + different selections
             #BDTPlotter.Compare_BDT_Scores_MultipleDatasetsAndSelections(dataset_files, datafile, categ, bdt_selections, selection_labels, isMC=True)
             
-            # 4. Constancy of 'r' plots
+            # 4. Full comparison: different files + different selections on same file
+            BDTPlotter.Compare_BDT_Scores_MultipleDatasetsAndSelectionsZTTMass(dataset_files, datafile_ZTTmass, categ, bdt_selections, selection_labels, True)
+            
+            # 5. Constancy of 'r' plots
             #BDTPlotter.Plot_Bdt_Symmetry(datafile, categ, False)
             
-            # 5. Get signal peak width
-            BDTPlotter.get_signal_window(datafile, categ, False)
+            # 6. Get signal peak width
+            #BDTPlotter.get_signal_window(datafile, categ, False)
