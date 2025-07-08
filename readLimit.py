@@ -64,7 +64,7 @@ def executeDataCards(labels,values, category):
  
     for value in values:
         label = "%s" % (value)
-        combine_command = "combineTool.py -M AsymptoticLimits  -n %s -d %s --cl 0.90 " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
+        combine_command = "combineTool.py -M AsymptoticLimits --run blind  -n %s -d %s --cl 0.90 " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
 #        combine_command = "combineTool.py -M BayesianSimple  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
 #        combine_command = "combineTool.py -M HybridNew --LHCmode LHC-limits  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 -t 5 --expectedFromGrid 0.5" % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
 
@@ -81,10 +81,12 @@ def executeDataCards_onCondor(labels,values, category):
  
     for value in values:
         label = "%s" % (value)
-#        combine_command = "combineTool.py -M AsymptoticLimits  -n %s -d %s --cl 0.90  --job-mode condor --sub-opts='+JobFlavour=\"workday\"'  --task-name HybridTest%s " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt',category+label)
+        combine_command = "combineTool.py -M AsymptoticLimits --run blind  -n %s -d %s --cl 0.90  --job-mode condor --sub-opts='+JobFlavour=\"workday\"'  --task-name HybridTest%s " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt',category+label)
 #        combine_command = "combineTool.py -M BayesianSimple  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
-        combine_command = "combineTool.py -M HybridNew --LHCmode LHC-limits  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 -t 25 --expectedFromGrid 0.5 --job-mode condor --sub-opts='+JobFlavour=\"workday\"'  --task-name HybridTest%s " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt',category+label)
-
+        #combine_command = "combineTool.py -M HybridNew --LHCmode LHC-limits  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 -t 25 --expectedFromGrid 0.5 --job-mode condor --sub-opts='+JobFlavour=\"workday\"'  --task-name HybridTest%s " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt',category+label)
+        
+        #combine_command = "combineTool.py -M HybridNew -n %s -d %s --rMin=-5 --rMax=50 --X-rtd MINIMIZER_freezeDisassociatedParams --cminDefaultMinimizerStrategy 0 --cl 0.90 -m 1.777 --generateNuisances=1 --generateExternalMeasurements=0 --fitNuisances=1 --testStat LHC --expectedFromGrid 0.5 -T 10000 --job-mode condor --sub-opts='+JobFlavour=\"workday\"' --task-name HybridTest%s " % (category+label, input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt', category+label)
+        
         # this on needs to add to submit to condor:
         # --job-mode condor --sub-opts='+JobFlavour=\"workday\"'  --task-name HybridTest
         print("")
@@ -122,18 +124,21 @@ def plotUpperLimits(labels,values,prefix,outputLabel):
     for i in range(N):
 #        file_name = "higgsCombine"+prefix+labels[i]+".AsymptoticLimits.mH120.root"
 #        file_name = "higgsCombine"+prefix+labels[i]+".HybridNew.mH120.quant0.500.root"
-        file_name = "higgsCombine"+prefix+labels[i]+".HybridNew.mH120.123456.quant0.500.root"
+#        file_name = "higgsCombine"+prefix+labels[i]+".HybridNew.mH120.123456.quant0.500.root"
+        file_name = "higgsCombine"+prefix+labels[i]+".HybridNew.mH1.777.quant0.500.root"
 
         print("filename:  ", file_name)
+        #This is only 1 when I only have one iteration?
         limit = getLimits(file_name)
+#        print("Limit set is: ",limit)
 #        up2s.append(limit[4])
-        upm.append(limit[2])
+        upm.append(limit[0])
 #        yellow.SetPoint(    i,    values[i], limit[4]) # + 2 sigma
 #        green.SetPoint(     i,    values[i], limit[3]) # + 1 sigma
-        median.SetPoint(    i,    values[i], limit[2]) #    median
+        median.SetPoint(    i,    values[i], limit[0]) #    median
 #        green.SetPoint(  2*N-1-i, values[i], limit[1]) # - 1 sigma
 #        yellow.SetPoint( 2*N-1-i, values[i], limit[0]) # - 2 sigma
-        text_limits.write("bdt %.2f     median exp %.2f\n"%(values[i],limit[2]))
+        text_limits.write("bdt %.2f     median exp %.2f\n"%(values[i],limit[0]))
 
     W = 800
     H  = 600
@@ -265,8 +270,8 @@ def main():
     #bdt_cuts = [-0.4,  -0.2,  0.00, 0.1, 0.2, 0.3, 0.31, 0.32, 0.33, 0.34, 0.35, 0.36, 0.37, 0.38, 0.39,  0.4, 0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.47, 0.48, 0.49, 0.5, 0.6, 0.7]      # a few entries for test
     #bdt_cuts = [-0.4,  -0.2,  0.00, 0.1, 0.2, 0.3, 0.31, 0.32, 0.33, 0.34, 0.35, 0.36, 0.37]      # a few entries for test
 
-#    categories = ['taue','taumu','tauhA','tauhB','all']
-    categories = ['tauhB']
+    categories = ['taue','taumu','tauhA','tauhB','all']
+#    categories = ['tauhB']
 #    categories = ['taue','taumu','tauhA','all']
 
     bdt_cuts_taue = generate_bdt_cuts(-0.2, 0.6, 0.2)
@@ -301,9 +306,9 @@ def main():
         print("labels", labels)
         print("prefix", cat)
 #        executeDataCards(labels,values,cat)
-#        executeDataCards_onCondor(labels,values,cat)
+        executeDataCards_onCondor(labels,values,cat)
 
-        plotUpperLimits(labels,values,cat,outputLabel)
+#        plotUpperLimits(labels,values,cat,outputLabel)
  
  
  

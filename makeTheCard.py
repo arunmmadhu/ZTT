@@ -11,7 +11,8 @@ from numpy import *
 import math
 import argparse
 import CMS_lumi, tdrstyle
-from CMSStyle import CMS_lumi
+#from CMSStyle import CMS_lumi
+import CMSStyle
 
 
 parser = argparse.ArgumentParser()
@@ -67,11 +68,24 @@ ROOT.TH1.SetDefaultSumw2()
 ROOT.gROOT.SetBatch(True)
 
 # CMS style
-CMS_lumi.cmsText = "CMS, work in progress"
-CMS_lumi.extraText = ""
-CMS_lumi.cmsTextSize = 0.65
-CMS_lumi.outOfFrame = True
+CMSStyle.cmsText = "CMS"
+CMSStyle.extraText = "       Work in progress"
+CMSStyle.relPosX = 0.070
+CMSStyle.outOfFrame = False
+CMSStyle.alignX_ = 1
+CMSStyle.relPosX    = 0.04
+#CMSStyle.relPosY    = 0.025
 tdrstyle.setTDRStyle()
+
+# references for T, B, L, R
+H_ref = 500; 
+W_ref = 700; 
+W = W_ref
+H  = H_ref
+T = 0.08*H_ref
+B = 0.18*H_ref 
+L = 0.17*W_ref
+R = 0.04*W_ref
 
 #if len(args.category)>0:
 #    args.category = '_'+args.category
@@ -272,10 +286,15 @@ else:
     pdfmodel.plotOn(frame,  ROOT.RooFit.LineColor(ROOT.kBlue) , ROOT.RooFit.Normalization(nbkg.getVal(), ROOT.RooAbsReal.NumEvent), ROOT.RooFit.ProjectionRange('full') )
 
 
-ctmp_canvas = ROOT.TCanvas('Category %s' % args.category, "Categories", 0, 0, 700, 500)
+ctmp_canvas = ROOT.TCanvas('Category %s' % args.category, "Categories", 0, 0, 910, 650)
 ctmp_canvas.SetFrameLineWidth(3)
 ctmp_canvas.SetTickx()
 ctmp_canvas.SetTicky()
+
+ctmp_canvas.SetLeftMargin(L / W)
+ctmp_canvas.SetRightMargin(R / W)
+ctmp_canvas.SetTopMargin(T / H)
+ctmp_canvas.SetBottomMargin(B / H)
 
 frame.Draw()
 legend = ROOT.TLegend(0.12, 0.70, 0.43, 0.86)
@@ -288,9 +307,10 @@ latex.SetNDC()
 latex.SetTextAngle(0)
 latex.SetTextFont(42)
 latex.SetTextAlign(31)
-latex.DrawLatex(0.57, 0.85, 'mass_fit%s_%dbins_bdtcut%s' % (args.category, nbins, args.bdt_point))
+#latex.DrawLatex(0.57, 0.85, 'mass_fit%s_%dbins_bdtcut%s' % (args.category, nbins, args.bdt_point))
 
-CMS_lumi(ROOT.gPad, 5, 0)
+#CMS_lumi(ROOT.gPad, 5, 0)
+CMSStyle.CMS_lumi(ROOT.gPad, 5, 0)
 ROOT.gPad.Update()
 
 ROOT.gPad.SaveAs(output_dir + '/plots/%s/massfit_%s_%dbins_bdtcut%s.png' %

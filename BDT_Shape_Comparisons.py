@@ -24,7 +24,7 @@ CMSStyle.relPosX    = 0.04
 tdrstyle.setTDRStyle()
 
 # references for T, B, L, R
-H_ref = 600; 
+H_ref = 800; 
 W_ref = 800; 
 W = W_ref
 H  = H_ref
@@ -642,18 +642,42 @@ class BDT_Shape_Comparisons:
                         graph_ratio_vs_bdt.SetPoint(point_index, bdt_cut, Ratio_val)
                         graph_ratio_vs_bdt.SetPointError(point_index, 0.0, Ratio_error)
                         
-                c = ROOT.TCanvas("c", "BDT vs SB Symmetry", 800, 600)
+                
+                
+                
+                bdt_canvas = ROOT.TCanvas("bdt_canvas", "BDT vs SB Symmetry", 800, 800)
+                bdt_canvas.cd()
+                bdt_canvas.SetLeftMargin( L/W )
+                bdt_canvas.SetRightMargin( R/W )
+                bdt_canvas.SetTopMargin( T/H )
+                bdt_canvas.SetBottomMargin( B/H )
                 graph_ratio_vs_bdt.SetMarkerStyle(20)
                 graph_ratio_vs_bdt.SetMarkerSize(1.0)
                 graph_ratio_vs_bdt.SetLineWidth(2)
+                
+                # Set the y-axis range
+                graph_ratio_vs_bdt.SetMinimum(0.1)
+                graph_ratio_vs_bdt.SetMaximum(0.3)
+                
                 graph_ratio_vs_bdt.Draw("AP")  # A = axis, P = points with errors
                 
-                c.SetGrid()
+                graph_ratio_vs_bdt.GetXaxis().SetTitle("BDT cut")
+                graph_ratio_vs_bdt.GetXaxis().SetNdivisions(505)
+                #graph_ratio_vs_bdt.GetXaxis().SetTitleSize(0.045)
+                graph_ratio_vs_bdt.GetYaxis().SetTitle(r"B_{S}/B_{SB}")
+                graph_ratio_vs_bdt.GetYaxis().SetTitleOffset(1.6)
+                graph_ratio_vs_bdt.GetYaxis().SetNdivisions(505)
+                #graph_ratio_vs_bdt.GetYaxis().SetTitleSize(0.045)
+                
+                bdt_canvas.SetGrid()
+                
+                CMSStyle.CMS_lumi(bdt_canvas, 5, 11)
+                bdt_canvas.Update()
                 
                 output_name = "Ratio_vs_BDTCut_%s.png" % (categ)
                 
-                c.SaveAs(output_name)
-                #c.SaveAs("Ratio_vs_BDTCut_%s.pdf")
+                bdt_canvas.SaveAs(output_name)
+                #bdt_canvas.SaveAs("Ratio_vs_BDTCut_%s.pdf")
                 
         
         
@@ -858,9 +882,9 @@ if __name__ == "__main__":
         datafile_ZTTmass = "../../Combine_Tree_ztau3mutau_ZTTMass_origTracker_PostBDT.root"
         
         # Categories to loop over
-        #categories = ['taue', 'taumu', 'tauhA', 'tauhB','all']
+        categories = ['taue', 'taumu', 'tauhA', 'tauhB','all']
         #categories = ['taue', 'taumu', 'tauhA', 'tauhB']
-        categories = ['tauhB']
+        #categories = ['tauhB']
         
         # Example BDT selections you want to compare
         bdt_selections = [
