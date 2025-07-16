@@ -780,27 +780,27 @@ class BDT_Shape_Comparisons:
                         treeName  = 'ztau3mutaue'
                         signalnorm = 0.00000856928
                         cat_label = r"$\tau_{e}$"
-                        #bdt_cut = 0.28
+                        bdt_cut = 0.24
                 if(categ == 'taumu'):
                         treeName = 'ztau3mutaumu'
                         signalnorm = 0.00000822810
                         cat_label = r"$\tau_{\mu}$"
-                        #bdt_cut = 0.44
+                        bdt_cut = 0.36
                 if(categ == 'tauhA'):
                         treeName = 'ztau3mutauh_A'
                         signalnorm = 0.00000815958
                         cat_label = r"$\tau_{h,1-prong}$"
-                        #bdt_cut = 0.38
+                        bdt_cut = 0.28
                 if(categ == 'tauhB'):
                         treeName = 'ztau3mutauh_B'
                         signalnorm = 0.00000815958
                         cat_label = r"$\tau_{h,3-prong}$"
-                        #bdt_cut = 0.15
+                        bdt_cut = 0.20
                 if(categ == 'all'):
                         treeName   = 'ztautau'
                         signalnorm = 0.00000824176
                         cat_label = "Inclusive"
-                        #bdt_cut = 0.59
+                        bdt_cut = 0.59
                 
                 tree = MiniTreeFile.Get(treeName)
                 
@@ -858,9 +858,9 @@ class BDT_Shape_Comparisons:
                 signal_peak_region_max = 0.0
                 
                 # Range of sigma factors
-                Xa_min = 1.5
+                Xa_min = 1.0
                 Xa_max = 3.5
-                N_a = 20
+                N_a = 25
                 
                 triplet_mass_bins = 40
                 
@@ -933,22 +933,172 @@ class BDT_Shape_Comparisons:
                             #            tokens = line.split()
                             #            print(f"Limit Bayesian: {tokens[5]}")
                 
-                            cmd_ul = f"python3 ../../workdirDataWithMCSkimmed_SeparateJul_08_2024/Projections/CLs_UL_Calculator.py {N_s_1} {N_b_1} > out_UL_Calc.txt"
+                            cmd_ul = f"python3 ../Projections/CLs_UL_Calculator_Integral.py {N_s_1} {N_b_1} > out_UL_Calc.txt"
                             os.system(cmd_ul)
                             
                             with open("out_UL_Calc.txt") as f:
                                 for line in f:
-                                    if "upper limit" in line:
+                                    if "r_val" in line:
                                         limit_val = line.split()[-1]
                                         print(f"Limit UL_Calc: {limit_val}")
                                         
                                         with open(output_name, "a") as out_file:
                                             out_file.write(f"{sigma_scale:.4f}\t{signal_peak_region_min:.5f}\t{signal_peak_region_max:.5f}\t{N_s_1:.3f}\t{N_b_1:.2f}\t{limit_val}\n")
                                             #out_file.write(f"{sigma_scale:.4f}\t{signal_peak_region_min:.5f}\t{signal_peak_region_max:.5f}\t{N_s_1:.3f}\t{N_b_1:.2f}\t{limit_val}\t{tokens[5]}\n")
+                                            
+                                            
+                                            
+        def get_signal_fit(self, datafile, categ, WhetherMC=False):
+                
+                fit_range_lo = 1.6
+                fit_range_hi = 2.0
+                
+                signal_range_lo = 1.74
+                signal_range_hi = 1.81
+                
+                MiniTreeFile = ROOT.TFile.Open(datafile)
+                MiniTreeFile.cd()
+                
+                treeName=''
+                signalnorm = 1.0
+                cat_label = ""
+                bdt_cut = 0.1 #A stringent enough cut
+                if(categ == 'taue'):
+                        treeName  = 'ztau3mutaue'
+                        signalnorm = 0.00000856928
+                        cat_label = r"$\tau_{e}$"
+                        bdt_cut = 0.24
+                if(categ == 'taumu'):
+                        treeName = 'ztau3mutaumu'
+                        signalnorm = 0.00000822810
+                        cat_label = r"$\tau_{\mu}$"
+                        bdt_cut = 0.36
+                if(categ == 'tauhA'):
+                        treeName = 'ztau3mutauh_A'
+                        signalnorm = 0.00000815958
+                        cat_label = r"$\tau_{h,1-prong}$"
+                        bdt_cut = 0.28
+                if(categ == 'tauhB'):
+                        treeName = 'ztau3mutauh_B'
+                        signalnorm = 0.00000815958
+                        cat_label = r"$\tau_{h,3-prong}$"
+                        bdt_cut = 0.20
+                if(categ == 'all'):
+                        treeName   = 'ztautau'
+                        signalnorm = 0.00000824176
+                        cat_label = "Inclusive"
+                        bdt_cut = 0.59
+                
+                bdt_cut = 0.1
+                bdt_cut = -1.0
+                
+                tree = MiniTreeFile.Get(treeName)
+                
+                tripletMass          = ROOT.RooRealVar('tripletMass'                , '3#mu mass'           , fit_range_lo, fit_range_hi, 'GeV')
+                bdt_cv               = ROOT.RooRealVar('bdt_cv'                     , 'bdt_cv'              , -1 , 1)
+                dimu_OS1             = ROOT.RooRealVar('dimu_OS1'                   , 'dimu_OS1'            ,  0 , 100)
+                dimu_OS2             = ROOT.RooRealVar('dimu_OS2'                   , 'dimu_OS2'            ,  0 , 100)
+                event_weight         = ROOT.RooRealVar('weight'                     , 'event_weight'        ,  0,  5)  # this weight includes also the scale  mc signal scale
+                category             = ROOT.RooRealVar('category'                   , 'category'            ,  0,  5)
+                isMC                 = ROOT.RooRealVar('isMC'                       , 'isMC'                ,  0,  1000000)
+                scale                = ROOT.RooRealVar('scale'                      , 'scale'               ,  signalnorm)  
+                
+                
+                
+                variables = ROOT.RooArgSet()
+                variables.add(tripletMass)
+                variables.add(bdt_cv)
+                variables.add(dimu_OS1)
+                variables.add(dimu_OS2)
+                variables.add(event_weight)
+                variables.add(category)
+                variables.add(isMC)
+                
+                #Define mc and data which can be reduced later
+                
+                phivetoes="(fabs(dimu_OS1 - 1.020)>0.020)&(fabs(dimu_OS2 - 1.020)>0.020)&"
+                omegavetoes="fabs(dimu_OS1 - 0.782)>0.020&fabs(dimu_OS2 - 0.782)>0.020&"
+                
+                MCSelector = RooFormulaVar('MCSelector', 'MCSelector', ' bdt_cv > ' + str(bdt_cut)+' & '+ phivetoes+' isMC !=0 & (isMC == 211 | isMC == 210231 | isMC == 210232 | isMC == 210233 ) & (tripletMass>=%s & tripletMass<=%s) ' %(signal_range_lo,signal_range_hi) , RooArgList(variables))
+                
+                fullmc_unweighted = RooDataSet('mc', 'mc', tree, variables, MCSelector)
+                dataset_vars = fullmc_unweighted.get()
+                dataset_vars.add(scale)
+                
+                fullmc = RooDataSet('mc', 'mc', fullmc_unweighted, dataset_vars, "",'scale')
+                
+                tripletMass.setRange("fullRange",fit_range_lo,fit_range_hi)
+                
+                mean = ROOT.RooRealVar("mean", "mean", 1.776, 0., 5.)
+                sigma = ROOT.RooRealVar("sigma", "sigma", 0.5, 0.001, 10)
+                Gauss = ROOT.RooGaussian("Gauss", "Gauss dist", tripletMass, mean, sigma)
+                GaussNorm = ROOT.RooRealVar("GaussNorm", "GaussNorm", 0.5, 0.001, 1.0)
+                mc_pdf = ROOT.RooAddPdf("mc_pdf", "mc_pdf", ROOT.RooArgList(Gauss), ROOT.RooArgList(GaussNorm))
+                mc_fitresult = mc_pdf.fitTo(fullmc_unweighted, ROOT.RooFit.Range("fullRange"), ROOT.RooFit.Save())
+                
+                Gaussian_Sigma_From_Loose_BDT_Cut = sigma.getVal()
+                
+                # Create canvas
+                canvas = ROOT.TCanvas("canvas", "canvas", 800, 800)
+                canvas.SetLeftMargin( L/W )
+                canvas.SetRightMargin( R/W )
+                canvas.SetTopMargin( T/H )
+                canvas.SetBottomMargin( B/H )
+                canvas.cd()
+                
+                # Create frame for tripletMass
+                frame = tripletMass.frame(ROOT.RooFit.Title(f"Signal Gaussian Fit: {categ}"))
+                
+                # Plot the dataset (scaled signal)
+                fullmc.plotOn(
+                    frame,
+                    ROOT.RooFit.Binning(40),
+                    ROOT.RooFit.MarkerStyle(20),
+                    ROOT.RooFit.MarkerColor(ROOT.kBlack),
+                    ROOT.RooFit.Name("sig_data")
+                )
+                
+                # Plot the fitted Gaussian
+                mc_pdf.plotOn(
+                    frame,
+                    ROOT.RooFit.LineColor(ROOT.kRed),
+                    ROOT.RooFit.Name("fit_curve")
+                )
+                
+                # Extract fit values
+                mean_val = mean.getVal()
+                mean_err = mean.getError()
+                sigma_val = sigma.getVal()
+                sigma_err = sigma.getError()
+                
+                frame.GetXaxis().SetNdivisions(505)
+                frame.GetYaxis().SetTitleOffset(1.6)
+                frame.GetXaxis().SetTitle("m_{3#mu} (GeV)")
+                frame.Draw()
+                
+                # Add legend
+                legend = ROOT.TLegend(0.60, 0.70, 0.88, 0.88)
+                legend.SetBorderSize(0)
+                legend.SetFillStyle(0)
+                legend.AddEntry(frame.findObject("sig_data"), "Signal MC", "lep")
+                legend.AddEntry(frame.findObject("fit_curve"), "Gaussian Fit", "l")
+                legend.Draw()
+                
+                # Add TLatex for mean and sigma
+                latex = ROOT.TLatex()
+                latex.SetNDC()
+                latex.SetTextSize(0.035)
+                latex.DrawLatex(0.60, 0.63, f"#mu = {mean_val:.5f} #pm {mean_err:.5f}")
+                latex.DrawLatex(0.60, 0.58, f"#sigma = {sigma_val:.5f} #pm {sigma_err:.5f}")
+                
+                # Save the plot
+                CMSStyle.CMS_lumi(canvas, 5, 11)
+                canvas.Update()
+                canvas.SaveAs(f"signal_fit_{categ}.png")
+                print(f"Saved: signal_fit_{categ}.png")
 
-
-
-
+                
+                
 if __name__ == "__main__":
     
         ROOT.gROOT.SetBatch(True)
@@ -1003,7 +1153,7 @@ if __name__ == "__main__":
                 tree = 'ztautau'
                 
             # 1. Compare different datasets (same selection)
-            BDTPlotter.Compare_BDT_Scores_MultipleDatasets(dataset_files, categ, True)
+            #BDTPlotter.Compare_BDT_Scores_MultipleDatasets(dataset_files, categ, True)
             
             # 2. Compare different selections on the same file. Pick any one file.
             #BDTPlotter.Compare_BDT_Scores_MultipleSelections(datafile, categ, bdt_selections, selection_labels, isMC=True)
@@ -1019,3 +1169,6 @@ if __name__ == "__main__":
             
             # 6. Get signal peak width
             #BDTPlotter.get_signal_window(datafile, categ, False)
+            
+            # 7. Get signal peak fit
+            BDTPlotter.get_signal_fit(datafile, categ, False)
