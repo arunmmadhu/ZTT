@@ -60,77 +60,145 @@ class BDT_Shape_Comparisons:
         
         
         
-        def Compare_BDT_Scores_MultipleDatasets(self, datafiles, categ, isMC=False):
-            frame = ROOT.RooRealVar('bdt_cv', 'BDT Score', -1, 1).frame()
+        def Compare_BDT_Scores_MultipleDatasets(self, datafiles, categ, WhetherMC=False):
+            #frame = ROOT.RooRealVar('bdt_cv', 'BDT Score', -1, 1).frame()
             colors = [ROOT.kBlack, ROOT.kRed, ROOT.kBlue, ROOT.kGreen+2, ROOT.kMagenta]
             
-            labels = ["old", "new"]
+            labels = ["Relaxed cuts", "All cuts"]
+            
+            fit_range_lo = 1.6
+            fit_range_hi = 2.0
+            
+            signal_range_lo = 1.74
+            signal_range_hi = 1.81
+            
+            whichToFit = "Combine_Tree_ztau3mutau_PF_PostBDT.root"
+            which_col = ROOT.kRed
             
             # Map categ to treename and LaTeX-style label
             if categ == 'taue':
                 treename = 'ztau3mutaue'
                 cat_label = r"#tau_{e}"
+                whichToFit = "Combine_Tree_ztau3mutau_orig_PostBDT.root"
+                which_col = ROOT.kBlack
             elif categ == 'taumu':
                 treename = 'ztau3mutaumu'
                 cat_label = r"#tau_{#mu}"
+                whichToFit = "Combine_Tree_ztau3mutau_PF_PostBDT.root"
+                which_col = ROOT.kRed
             elif categ == 'tauhA':
                 treename = 'ztau3mutauh_A'
                 cat_label = r"#tau_{h,1-prong}"
+                whichToFit = "Combine_Tree_ztau3mutau_orig_PostBDT.root"
+                which_col = ROOT.kBlack
             elif categ == 'tauhB':
                 treename = 'ztau3mutauh_B'
                 cat_label = r"#tau_{h,3-prong}"
+                whichToFit = "Combine_Tree_ztau3mutau_orig_PostBDT.root"
+                which_col = ROOT.kBlack
             elif categ == 'all':
                 treename = 'ztautau'
                 cat_label = "Inclusive"
+                whichToFit = "Combine_Tree_ztau3mutau_PF_PostBDT.root"
+                which_col = ROOT.kRed
             else:
                 treename = categ
                 cat_label = categ
         
-            legend = ROOT.TLegend(0.3, 0.3, 0.55, 0.55)
+            if WhetherMC:
+                    legend = ROOT.TLegend(0.3, 0.3, 0.55, 0.55)  # Left half
+            else:
+                    #legend = ROOT.TLegend(0.65, 0.3, 0.9, 0.55)  # Right half
+                    legend = ROOT.TLegend(0.3, 0.3, 0.55, 0.55)
             legend.SetBorderSize(0)
             legend.SetFillStyle(0)
-            legend.SetHeader(cat_label, "C")
+            # legend.SetHeader(cat_label, "C")
+            
+            # Define variables
+            bdt_cv = ROOT.RooRealVar("bdt_cv", "bdt_cv", -1.0, 1.0)
+            tripletMass = ROOT.RooRealVar('tripletMass', '3#mu mass', 0, 100)
+            isMC = ROOT.RooRealVar("isMC", "isMC", 0, 1000000)
+            weight = ROOT.RooRealVar("weight", "weight", 0, 5)
+            dimu_OS1 = ROOT.RooRealVar('dimu_OS1', 'dimu_OS1', 0, 1000)
+            dimu_OS2 = ROOT.RooRealVar('dimu_OS2', 'dimu_OS2', 0, 1000)
+            
+            frame = bdt_cv.frame()
             
             for i, datafile in enumerate(datafiles):
-                MiniTreeFile = ROOT.TFile.Open(datafile)
-                tree = MiniTreeFile.Get(treename)  # e.g. 'ztau3mutauh_A'
+                    MiniTreeFile = ROOT.TFile.Open(datafile)
+                    tree = MiniTreeFile.Get(treename)
                 
-                # Define all variables only once
-                bdt_cv = ROOT.RooRealVar("bdt_cv", "bdt_cv", -1.01, 1.01)
-                tripletMass = ROOT.RooRealVar('tripletMass', '3#mu mass', 0, 100)
-                isMC = ROOT.RooRealVar("isMC", "isMC", 0, 1000000)
-                weight = ROOT.RooRealVar("weight", "weight", 0, 5)
-                dimu_OS1 = ROOT.RooRealVar('dimu_OS1', 'dimu_OS1', 0, 1000)
-                dimu_OS2 = ROOT.RooRealVar('dimu_OS2', 'dimu_OS2', 0, 1000)
+                    variables = ROOT.RooArgSet(tripletMass, bdt_cv, isMC, weight, dimu_OS1, dimu_OS2)
                 
-                # Choose data or mc without weights
+                    phivetoes = "(fabs(dimu_OS1 - 1.020)>0.020)&&(fabs(dimu_OS2 - 1.020)>0.020)&&"
                 
-                variables_noweight = ROOT.RooArgSet(tripletMass, bdt_cv, isMC, weight, dimu_OS1, dimu_OS2)
-                selector_str = "isMC == 0" if not isMC else "( isMC == 211 || isMC == 210231 || isMC == 210232 || isMC == 210233 )"
-                dataset_unweighted = ROOT.RooDataSet("data_{0}".format(i), "data_{0}".format(i), tree, variables_noweight, selector_str)
+                    if not WhetherMC:
+                        selector = ROOT.RooFormulaVar(
+                            'DataSelector', 'DataSelector',
+                            phivetoes + f"isMC == 0 && (tripletMass<={signal_range_lo} || tripletMass>={signal_range_hi}) && (tripletMass>={fit_range_lo} && tripletMass<={fit_range_hi})",
+                            ROOT.RooArgList(variables)
+                        )
+                    else:
+                        selector = ROOT.RooFormulaVar(
+                            'MCSelector', 'MCSelector',
+                            phivetoes + f"isMC != 0 && (isMC == 211 || isMC == 210231 || isMC == 210232 || isMC == 210233) && (tripletMass>={signal_range_lo} && tripletMass<={signal_range_hi})",
+                            ROOT.RooArgList(variables)
+                        )
                 
+                    dataset_unweighted = ROOT.RooDataSet(f"data_{i}", f"data_{i}", tree, variables, selector)
                 
-                # Normalizing the samples to 1.0
-                norm_factor = 1.0 / dataset_unweighted.numEntries()
-                print("dataset entries: ",dataset_unweighted.numEntries())
-                scale = ROOT.RooRealVar("scale", "scale", norm_factor)
-                dataset_vars = dataset_unweighted.get()
-                dataset_vars.add(scale)
+                    norm_factor = 1.0 / dataset_unweighted.numEntries()
+                    print("dataset entries:", dataset_unweighted.numEntries())
+                    scale = ROOT.RooRealVar("scale", "scale", norm_factor)
+                    dataset_vars = dataset_unweighted.get()
+                    dataset_vars.add(scale)
                 
-                dataset = ROOT.RooDataSet("scaled_ds", "scaled_ds",dataset_unweighted,dataset_vars,"","scale")
+                    dataset = ROOT.RooDataSet("scaled_ds", "scaled_ds", dataset_unweighted, dataset_vars, "", "scale")
+                    #dataset = dataset_unweighted
                 
-                curve_name = "curve_%d" % i
-                dataset.plotOn(
-                    frame,
-                    ROOT.RooFit.Binning(100),
-                    ROOT.RooFit.MarkerColor(colors[i % len(colors)]),
-                    ROOT.RooFit.LineColor(colors[i % len(colors)]),
-                    ROOT.RooFit.MarkerStyle(20 + i),
-                    ROOT.RooFit.MarkerSize(0.75),
-                    ROOT.RooFit.Name(curve_name)
-                )
+                    curve_name = f"curve_{i}"
+                    dataset.plotOn(
+                        frame,
+                        ROOT.RooFit.Binning(100),
+                        ROOT.RooFit.MarkerColor(colors[i % len(colors)]),
+                        ROOT.RooFit.LineColor(colors[i % len(colors)]),
+                        ROOT.RooFit.MarkerStyle(20 + i),
+                        ROOT.RooFit.MarkerSize(0.75),
+                        ROOT.RooFit.Name(curve_name)
+                    )
+                    curve = frame.findObject(curve_name)
+                    legend.AddEntry(curve, labels[i], "lep")
                 
-                legend.AddEntry(curve_name, labels[i], "lep")
+                    # Only fit data from Combine_Tree_ztau3mutau_PF_PostBDT.root
+                    if not WhetherMC and os.path.basename(datafile) == whichToFit:
+                    #if True:
+                        BDT_Score_Min = -0.3
+                        bdt_cv.setRange("BDT_Fit_Range", BDT_Score_Min, 1.0)
+                
+                        a = ROOT.RooRealVar("a", "a", 1.0, 0.0, 10.0)
+                        b = ROOT.RooRealVar("b", "b", 1.0, -10.0, 10.0)
+                        c = ROOT.RooRealVar("c", "c", 1.0, -10.0, 10.0)
+                        d = ROOT.RooRealVar("d", "d", 1.0, -10.0, 10.0)
+                
+                        quadratic = ROOT.RooFormulaVar("quadratic", "a + b*bdt_cv + c*bdt_cv*bdt_cv + d*bdt_cv*bdt_cv*bdt_cv",
+                                                       ROOT.RooArgList(a, b, c, d, bdt_cv))
+                        expModel = ROOT.RooGenericPdf("expModel", "exp(quadratic)", ROOT.RooArgList(quadratic))
+                
+                        BDTNorm = ROOT.RooRealVar("BDTNorm", "BDTNorm", 500.0, 0.1, 1000000000)
+                        BDT_distribution = ROOT.RooAddPdf("BDT_distribution", "BDT_distribution",
+                                                          ROOT.RooArgList(expModel), ROOT.RooArgList(BDTNorm))
+                
+                        results_pdf = BDT_distribution.fitTo(dataset_unweighted, ROOT.RooFit.Range("BDT_Fit_Range"), ROOT.RooFit.Save())
+                        
+                        BDT_distribution.plotOn(
+                            frame,
+                            ROOT.RooFit.Normalization(dataset.sumEntries("", "BDT_Fit_Range"), ROOT.RooAbsReal.NumEvent),
+                            ROOT.RooFit.LineColor(which_col),
+                            ROOT.RooFit.LineStyle(2),
+                            ROOT.RooFit.Name("fit_curve")
+                        )
+                        legend.AddEntry(frame.findObject("fit_curve"), "Fit", "l")
+            
             
             
             #Plotting
@@ -140,17 +208,26 @@ class BDT_Shape_Comparisons:
             bdt_canvas.SetRightMargin( R/W )
             bdt_canvas.SetTopMargin( T/H )
             bdt_canvas.SetBottomMargin( B/H )
+            
+            if not WhetherMC:
+                    bdt_canvas.SetLogy()
+                    frame.SetMinimum(1e-5)
             frame.GetXaxis().SetTitle("BDT score")
             frame.GetXaxis().SetNdivisions(505)
             frame.GetYaxis().SetTitleOffset(1.6)
             frame.GetYaxis().SetNdivisions(505)
             frame.SetTitle("BDT score comparison")
-            frame.Draw()
+            frame.Draw('sameaxis')
             legend.Draw()
-            CMSStyle.CMS_lumi(bdt_canvas, 5, 11)
+            if WhetherMC:
+                    CMSStyle.extraText = "Work in progress"
+                    CMSStyle.CMS_lumi(bdt_canvas, 5, 11)
+            else:
+                    CMSStyle.extraText = "        Work in progress"
+                    CMSStyle.CMS_lumi(bdt_canvas, 5, 0)
             bdt_canvas.Update()
             
-            tag = "mc" if isMC else "data"
+            tag = "mc" if WhetherMC else "data"
             output_name = "bdt_score_comparison_multidatasets_%s_%s.png" % (tag, categ)
             bdt_canvas.SaveAs(output_name)
         
@@ -406,7 +483,7 @@ class BDT_Shape_Comparisons:
             legend = ROOT.TLegend(0.3, 0.3, 0.55, 0.55)
             legend.SetBorderSize(0)
             legend.SetFillStyle(0)
-            legend.SetHeader(cat_label, "C")
+            #legend.SetHeader(cat_label, "C")
             
             # Common variables
             bdt_cv = ROOT.RooRealVar("bdt_cv", "bdt_cv", -1.01, 1.01)
@@ -882,8 +959,8 @@ if __name__ == "__main__":
         datafile_ZTTmass = "../../Combine_Tree_ztau3mutau_ZTTMass_origTracker_PostBDT.root"
         
         # Categories to loop over
-        categories = ['taue', 'taumu', 'tauhA', 'tauhB','all']
-        #categories = ['taue', 'taumu', 'tauhA', 'tauhB']
+        #categories = ['taue', 'taumu', 'tauhA', 'tauhB','all']
+        categories = ['taue', 'taumu', 'tauhA', 'tauhB']
         #categories = ['tauhB']
         
         # Example BDT selections you want to compare
@@ -902,7 +979,7 @@ if __name__ == "__main__":
         dataset_files = [
             "../../Combine_Tree_ztau3mutau_orig_PostBDT.root",
             #"../../Combine_Tree_ztau3mutau_PFGL_PostBDT.root",
-            #"../../Combine_Tree_ztau3mutau_PF_PostBDT.root",
+            "../../Combine_Tree_ztau3mutau_PF_PostBDT.root",
         ]
         
         # Loop over categories
@@ -924,9 +1001,9 @@ if __name__ == "__main__":
                 tree = 'ztau3mutauh_B'
             elif categ == 'all':
                 tree = 'ztautau'
-        
+                
             # 1. Compare different datasets (same selection)
-            #BDTPlotter.Compare_BDT_Scores_MultipleDatasets(dataset_files, categ, True)
+            BDTPlotter.Compare_BDT_Scores_MultipleDatasets(dataset_files, categ, True)
             
             # 2. Compare different selections on the same file. Pick any one file.
             #BDTPlotter.Compare_BDT_Scores_MultipleSelections(datafile, categ, bdt_selections, selection_labels, isMC=True)
@@ -938,7 +1015,7 @@ if __name__ == "__main__":
             #BDTPlotter.Compare_BDT_Scores_MultipleDatasetsAndSelectionsZTTMass(dataset_files, datafile_ZTTmass, categ, bdt_selections, selection_labels, True)
             
             # 5. Constancy of 'r' plots
-            BDTPlotter.Plot_Bdt_Symmetry(datafile, categ, False)
+            #BDTPlotter.Plot_Bdt_Symmetry(datafile, categ, False)
             
             # 6. Get signal peak width
             #BDTPlotter.get_signal_window(datafile, categ, False)

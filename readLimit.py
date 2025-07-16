@@ -7,7 +7,8 @@ import subprocess # to execute shell command
 import argparse
 import numpy as np
 import tdrstyle
-from CMSStyle import CMS_lumi
+#from CMSStyle import CMS_lumi
+import CMSStyle
 import os
 
 
@@ -21,11 +22,24 @@ input_dir  = args.inputdir
 ROOT.gROOT.SetBatch(ROOT.kTRUE)
  
 # CMS style
-CMS_lumi.cmsText = "CMS, work in progress"
-CMS_lumi.extraText = ""
-CMS_lumi.cmsTextSize = 0.65
-CMS_lumi.outOfFrame = True
+CMSStyle.cmsText = "CMS"
+CMSStyle.extraText = "       Work in progress"
+CMSStyle.relPosX = 0.070
+CMSStyle.outOfFrame = False
+CMSStyle.alignX_ = 1
+CMSStyle.relPosX    = 0.04
+#CMSStyle.relPosY    = 0.025
 tdrstyle.setTDRStyle()
+
+# references for T, B, L, R
+H_ref = 800; 
+W_ref = 600; 
+W = W_ref
+H  = H_ref
+T = 0.08*H_ref
+B = 0.18*H_ref 
+L = 0.22*W_ref
+R = 0.04*W_ref
 
 
 #Function to generate BDT cuts
@@ -81,10 +95,11 @@ def executeDataCards_onCondor(labels,values, category):
  
     for value in values:
         label = "%s" % (value)
-        combine_command = "combineTool.py -M AsymptoticLimits --run blind  -n %s -d %s --cl 0.90  --job-mode condor --sub-opts='+JobFlavour=\"workday\"'  --task-name HybridTest%s " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt',category+label)
+        #combine_command = "combineTool.py -M AsymptoticLimits --run blind  -n %s -d %s --cl 0.90  --job-mode condor --sub-opts='+JobFlavour=\"workday\"'  --task-name HybridTest%s " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt',category+label)
 #        combine_command = "combineTool.py -M BayesianSimple  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt')
-        #combine_command = "combineTool.py -M HybridNew --LHCmode LHC-limits  -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 -t 25 --expectedFromGrid 0.5 --job-mode condor --sub-opts='+JobFlavour=\"workday\"'  --task-name HybridTest%s " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt',category+label)
+        combine_command = "combineTool.py -M HybridNew --generateNuisances=1 --generateExternalMeasurements=0 --fitNuisances=1 --testStat LHC -n %s -d %s --rMin 0 --rMax 50 --cl 0.90 -T 20000 --expectedFromGrid 0.5 --job-mode condor --sub-opts='+JobFlavour=\"workday\"'  --task-name HybridTest%s " % (category+label,input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt',category+label)
         
+        #The below gives wonky scans
         #combine_command = "combineTool.py -M HybridNew -n %s -d %s --rMin=-5 --rMax=50 --X-rtd MINIMIZER_freezeDisassociatedParams --cminDefaultMinimizerStrategy 0 --cl 0.90 -m 1.777 --generateNuisances=1 --generateExternalMeasurements=0 --fitNuisances=1 --testStat LHC --expectedFromGrid 0.5 -T 10000 --job-mode condor --sub-opts='+JobFlavour=\"workday\"' --task-name HybridTest%s " % (category+label, input_dir+'/datacards/'+category+'/ZTT_T3mu_'+category+'_bdtcut'+label+'.txt', category+label)
         
         # this on needs to add to submit to condor:
@@ -116,30 +131,46 @@ def plotUpperLimits(labels,values,prefix,outputLabel):
     N = len(labels)
     yellow = TGraph(2*N)   
     green = TGraph(2*N)    
-    median = TGraph(N)     
+    median = TGraph(N)  
+    WhetherHybridN = True
  
     up2s = [ ]
     upm  = [ ]
     text_limits=open("TextLimits%s"%(prefix)+outputLabel+".txt","w")
-    for i in range(N):
-#        file_name = "higgsCombine"+prefix+labels[i]+".AsymptoticLimits.mH120.root"
-#        file_name = "higgsCombine"+prefix+labels[i]+".HybridNew.mH120.quant0.500.root"
-#        file_name = "higgsCombine"+prefix+labels[i]+".HybridNew.mH120.123456.quant0.500.root"
-        file_name = "higgsCombine"+prefix+labels[i]+".HybridNew.mH1.777.quant0.500.root"
-
-        print("filename:  ", file_name)
-        #This is only 1 when I only have one iteration?
-        limit = getLimits(file_name)
-#        print("Limit set is: ",limit)
-#        up2s.append(limit[4])
-        upm.append(limit[0])
-#        yellow.SetPoint(    i,    values[i], limit[4]) # + 2 sigma
-#        green.SetPoint(     i,    values[i], limit[3]) # + 1 sigma
-        median.SetPoint(    i,    values[i], limit[0]) #    median
-#        green.SetPoint(  2*N-1-i, values[i], limit[1]) # - 1 sigma
-#        yellow.SetPoint( 2*N-1-i, values[i], limit[0]) # - 2 sigma
-        text_limits.write("bdt %.2f     median exp %.2f\n"%(values[i],limit[0]))
-
+    if WhetherHybridN:
+        for i in range(N):
+                #file_name = "higgsCombine"+prefix+labels[i]+".HybridNew.mH1.777.quant0.500.root"
+                file_name = "higgsCombine"+prefix+labels[i]+".HybridNew.mH120.quant0.500.root"
+                #file_name = "higgsCombine"+prefix+labels[i]+".HybridNew.mH120.123456.quant0.500.root"
+        
+                print("filename:  ", file_name)
+                #This is only 1 when I only have one iteration?
+                limit = getLimits(file_name)
+#                print("Limit set is: ",limit)
+#                up2s.append(limit[4])
+                upm.append(limit[0])
+#                yellow.SetPoint(    i,    values[i], limit[4]) # + 2 sigma
+#                green.SetPoint(     i,    values[i], limit[3]) # + 1 sigma
+                median.SetPoint(    i,    values[i], limit[0]) #    median
+#                green.SetPoint(  2*N-1-i, values[i], limit[1]) # - 1 sigma
+#                yellow.SetPoint( 2*N-1-i, values[i], limit[0]) # - 2 sigma
+                text_limits.write("bdt %.2f     median exp %.2f\n"%(values[i],limit[0]))
+    if not WhetherHybridN:
+        for i in range(N):
+                file_name = "higgsCombine"+prefix+labels[i]+".AsymptoticLimits.mH120.root"
+        
+                print("filename:  ", file_name)
+                #This is only 1 when I only have one iteration?
+                limit = getLimits(file_name)
+#                print("Limit set is: ",limit)
+#                up2s.append(limit[4])
+                upm.append(limit[2])
+#                yellow.SetPoint(    i,    values[i], limit[4]) # + 2 sigma
+#                green.SetPoint(     i,    values[i], limit[3]) # + 1 sigma
+                median.SetPoint(    i,    values[i], limit[2]) #    median
+#                green.SetPoint(  2*N-1-i, values[i], limit[1]) # - 1 sigma
+#                yellow.SetPoint( 2*N-1-i, values[i], limit[0]) # - 2 sigma
+        text_limits.write("bdt %.2f     median exp %.2f\n"%(values[i],limit[2]))
     W = 800
     H  = 600
     T = 0.08*H
@@ -181,7 +212,7 @@ def plotUpperLimits(labels,values,prefix,outputLabel):
     #frame.SetMaximum(median.GetHistogram().GetMinimum()+(5.0/3.0)*(median.GetHistogram().GetMaximum()-median.GetHistogram().GetMinimum()))
     
     frame.SetMinimum(0.0)
-    frame.SetMaximum(25.0)
+    frame.SetMaximum(30.0)
 
 #    frame.GetXaxis().SetLimits(min(values),max(values)*1.2)
     frame.GetXaxis().SetLimits(min(values) ,max(values)*1.2)
@@ -206,7 +237,7 @@ def plotUpperLimits(labels,values,prefix,outputLabel):
  
 #    CMS_lumi.CMS_lumi(c,13,11)
     ROOT.gPad.SetTicks(1,1)
-    CMS_lumi(ROOT.gPad, 5, 0)
+    CMSStyle.CMS_lumi(ROOT.gPad, 5, 0)
     ROOT.gPad.Update()
     frame.Draw('sameaxis')
  
@@ -219,8 +250,10 @@ def plotUpperLimits(labels,values,prefix,outputLabel):
     legend.SetBorderSize(0)
     legend.SetTextSize(0.041)
     legend.SetTextFont(42)
-#    legend.AddEntry(median, "Asymptotic CL_{s} expected upper limit",'L')
-    legend.AddEntry(median, "HybridNew CL_{s} expected upper limit",'L')
+    if WhetherHybridN:
+            legend.AddEntry(median, "HybridNew CL_{s} expected upper limit",'L')
+    else:
+            legend.AddEntry(median, "Asymptotic CL_{s} expected upper limit",'L')
 #    legend.AddEntry(green, "#pm 1 std. deviation",'f')
 #    legend.AddEntry(yellow,"#pm 2 std. deviation",'f')
 
@@ -306,9 +339,9 @@ def main():
         print("labels", labels)
         print("prefix", cat)
 #        executeDataCards(labels,values,cat)
-        executeDataCards_onCondor(labels,values,cat)
+#        executeDataCards_onCondor(labels,values,cat)
 
-#        plotUpperLimits(labels,values,cat,outputLabel)
+        plotUpperLimits(labels,values,cat,outputLabel)
  
  
  

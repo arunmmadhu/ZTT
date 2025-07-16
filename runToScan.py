@@ -47,11 +47,17 @@ if __name__ == "__main__":
 
 
     
-    bdt_cuts_taue = generate_bdt_cuts(-0.2, 0.6, 0.2)
-    bdt_cuts_taumu = generate_bdt_cuts(0.0, 0.7, 0.4)
-    bdt_cuts_tauhA = generate_bdt_cuts(-0.2, 0.6, 0.32)
-    bdt_cuts_tauhB = generate_bdt_cuts(-0.4, 0.55, 0.15)
-    bdt_cuts_all = generate_bdt_cuts(0.15, 0.85, 0.55)
+    #bdt_cuts_taue = generate_bdt_cuts(-0.2, 0.6, 0.2)
+    #bdt_cuts_taumu = generate_bdt_cuts(0.0, 0.7, 0.4)
+    #bdt_cuts_tauhA = generate_bdt_cuts(-0.2, 0.6, 0.32)
+    #bdt_cuts_tauhB = generate_bdt_cuts(-0.4, 0.55, 0.15)
+    #bdt_cuts_all = generate_bdt_cuts(0.15, 0.85, 0.55)
+    
+    bdt_cuts_taue = np.round(np.arange(-0.24, 0.82, 0.04), 2)
+    bdt_cuts_taumu = np.round(np.arange(-0.24, 0.82, 0.04), 2)
+    bdt_cuts_tauhA = np.round(np.arange(-0.24, 0.82, 0.04), 2)
+    bdt_cuts_tauhB = np.round(np.arange(-0.24, 0.82, 0.04), 2)
+    bdt_cuts_all = np.round(np.arange(-0.24, 0.82, 0.04), 2)
     
     
     open('Slopes_taue.txt', 'w').close()
@@ -70,9 +76,9 @@ if __name__ == "__main__":
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taue\""  + "  --signalnorm=0.00000856928"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=power_law  --outdir=power_law " + ";"
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taue\""  + "  --signalnorm=0.00000856928"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=flat  --outdir=flat_fit " + ";"
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taue\""  + "  --signalnorm=0.00000856928"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=unfixed_exp  --outdir=unfixed_exp " + ";"
-        #command+="./makeTheCard.py --selection=\'bdt_cv > %s\'"%bdt_cut   + " --category=\"taue\""  + "  --signalnorm=0.00000856928"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=unfixed_exp  --outdir=unfixed_exp " + ";"
-        #command+="./makeTheCard.py --selection=\' bdt_cv > %s\'"%bdt_cut   + " --category=\"taue\""  + "  --signalnorm=0.00000856928"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=flat  --outdir=flat_fit " + ";"
-        pass
+        command+="./makeTheCard.py --selection=\'bdt_cv > %s\'"%bdt_cut   + " --category=\"taue\""  + "  --signalnorm=0.00000856928"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=unfixed_exp  --outdir=unfixed_exp " + ";"
+        command+="./makeTheCard.py --selection=\' bdt_cv > %s\'"%bdt_cut   + " --category=\"taue\""  + "  --signalnorm=0.00000856928"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=flat  --outdir=flat_fit " + ";"
+        #pass
        
     for bdt_cut in bdt_cuts_taumu:
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taumu\"" + "  --signalnorm=0.00000822810"  + "  --bdt_point=%s"%bdt_cut + "  --outdir=unfixed_slope " + ";"
@@ -82,9 +88,9 @@ if __name__ == "__main__":
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taumu\"" + "  --signalnorm=0.00000822810"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=power_law  --outdir=power_law " + ";"
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taumu\"" + "  --signalnorm=0.00000822810"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=flat  --outdir=flat_fit " + ";"
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"taumu\"" + "  --signalnorm=0.00000822810"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=unfixed_exp  --outdir=unfixed_exp " + ";"
-        #command+="./makeTheCard.py --selection=\'bdt_cv > %s\'"%bdt_cut   + " --category=\"taumu\"" + "  --signalnorm=0.00000822810"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=unfixed_exp  --outdir=unfixed_exp " + ";"
-        #command+="./makeTheCard.py --selection=\'bdt_cv > %s\'"%bdt_cut   + " --category=\"taumu\"" + "  --signalnorm=0.00000822810"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=flat  --outdir=flat_fit " + ";"
-        pass
+        command+="./makeTheCard.py --selection=\'bdt_cv > %s\'"%bdt_cut   + " --category=\"taumu\"" + "  --signalnorm=0.00000822810"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=unfixed_exp  --outdir=unfixed_exp " + ";"
+        command+="./makeTheCard.py --selection=\'bdt_cv > %s\'"%bdt_cut   + " --category=\"taumu\"" + "  --signalnorm=0.00000822810"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=flat  --outdir=flat_fit " + ";"
+        #pass
     
     for bdt_cut in bdt_cuts_tauhA:
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhA\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + "  --outdir=unfixed_slope " + ";"
@@ -95,9 +101,9 @@ if __name__ == "__main__":
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhA\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=power_law  --outdir=power_law " + ";"
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhA\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=flat  --outdir=flat_fit " + ";"
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhA\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=unfixed_exp  --outdir=unfixed_exp " + ";"
-        #command+="./makeTheCard.py --selection=\'bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhA\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=unfixed_exp  --outdir=unfixed_exp " + ";"
-        #command+="./makeTheCard.py --selection=\'bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhA\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=flat  --outdir=flat_fit " + ";"
-        pass
+        command+="./makeTheCard.py --selection=\'bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhA\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=unfixed_exp  --outdir=unfixed_exp " + ";"
+        command+="./makeTheCard.py --selection=\'bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhA\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=flat  --outdir=flat_fit " + ";"
+        #pass
         
     for bdt_cut in bdt_cuts_tauhB:
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhB\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + "  --outdir=unfixed_slope " + ";"
@@ -107,7 +113,7 @@ if __name__ == "__main__":
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhB\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=power_law  --outdir=power_law " + ";"
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhB\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=flat  --outdir=flat_fit " + ";"
         #command+="./makeTheCard.py --selection=" + phivetoes + omegavetoes + " &bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhB\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=unfixed_exp  --outdir=unfixed_exp " + ";"
-        #command+="./makeTheCard.py --selection=\'bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhB\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=unfixed_exp  --outdir=unfixed_exp " + ";"
+        command+="./makeTheCard.py --selection=\'bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhB\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=unfixed_exp  --outdir=unfixed_exp " + ";"
         command+="./makeTheCard.py --selection=\'bdt_cv > %s\'"%bdt_cut   + " --category=\"tauhB\"" + "  --signalnorm=0.00000815958"  + "  --bdt_point=%s"%bdt_cut + " --pdf_type=flat  --outdir=flat_fit " + ";"
         #pass
         
