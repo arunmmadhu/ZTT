@@ -11,6 +11,7 @@ import tdrstyle
 import CMSStyle
 import os
 import re
+import array
 
 
 # CMS style
@@ -780,27 +781,27 @@ class BDT_Shape_Comparisons:
                         treeName  = 'ztau3mutaue'
                         signalnorm = 0.00000856928
                         cat_label = r"$\tau_{e}$"
-                        bdt_cut = 0.24
+                        #bdt_cut = 0.24
                 if(categ == 'taumu'):
                         treeName = 'ztau3mutaumu'
                         signalnorm = 0.00000822810
                         cat_label = r"$\tau_{\mu}$"
-                        bdt_cut = 0.36
+                        #bdt_cut = 0.36
                 if(categ == 'tauhA'):
                         treeName = 'ztau3mutauh_A'
                         signalnorm = 0.00000815958
                         cat_label = r"$\tau_{h,1-prong}$"
-                        bdt_cut = 0.28
+                        #bdt_cut = 0.28
                 if(categ == 'tauhB'):
                         treeName = 'ztau3mutauh_B'
                         signalnorm = 0.00000815958
                         cat_label = r"$\tau_{h,3-prong}$"
-                        bdt_cut = 0.20
+                        #bdt_cut = 0.20
                 if(categ == 'all'):
                         treeName   = 'ztautau'
                         signalnorm = 0.00000824176
                         cat_label = "Inclusive"
-                        bdt_cut = 0.59
+                        #bdt_cut = 0.59
                 
                 tree = MiniTreeFile.Get(treeName)
                 
@@ -829,7 +830,7 @@ class BDT_Shape_Comparisons:
                 phivetoes="(fabs(dimu_OS1 - 1.020)>0.020)&(fabs(dimu_OS2 - 1.020)>0.020)&"
                 omegavetoes="fabs(dimu_OS1 - 0.782)>0.020&fabs(dimu_OS2 - 0.782)>0.020&"
                 
-                MCSelector = RooFormulaVar('MCSelector', 'MCSelector', ' bdt_cv > ' + str(bdt_cut)+' & '+ phivetoes+' isMC !=0 & (isMC == 211 | isMC == 210231 | isMC == 210232 | isMC == 210233 ) & (tripletMass>=%s & tripletMass<=%s) ' %(signal_range_lo,signal_range_hi) , RooArgList(variables))
+                MCSelector = RooFormulaVar('MCSelector', 'MCSelector', ' bdt_cv > ' + str(bdt_cut)+' & '+ phivetoes+' isMC !=0 & (isMC == 211 | isMC == 210231 | isMC == 210232 | isMC == 210233 ) & (tripletMass>=%s & tripletMass<=%s) ' %(fit_range_lo,fit_range_hi) , RooArgList(variables))
                 
                 fullmc_unweighted = RooDataSet('mc', 'mc', tree, variables, MCSelector)
                 dataset_vars = fullmc_unweighted.get()
@@ -842,14 +843,25 @@ class BDT_Shape_Comparisons:
                         
                 fulldata = RooDataSet('fulldata', 'fulldata', tree,  variables, BlindDataSelector)
                 
-                tripletMass.setRange("fullRange",fit_range_lo,fit_range_hi)
+                tripletMass.setRange("fullRange",1.73,1.82)
                 
-                mean = ROOT.RooRealVar("mean", "mean", 1.776, 0., 5.)
-                sigma = ROOT.RooRealVar("sigma", "sigma", 0.5, 0.001, 10)
-                Gauss = ROOT.RooGaussian("Gauss", "Gauss dist", tripletMass, mean, sigma)
-                GaussNorm = ROOT.RooRealVar("GaussNorm", "GaussNorm", 0.5, 0.001, 1.0)
-                mc_pdf = ROOT.RooAddPdf("mc_pdf", "mc_pdf", ROOT.RooArgList(Gauss), ROOT.RooArgList(GaussNorm))
-                mc_fitresult = mc_pdf.fitTo(fullmc, ROOT.RooFit.Range("fullRange"), ROOT.RooFit.Save())
+                # Crystal Ball #1 (left tail)
+                mean = ROOT.RooRealVar("mean", "mean", 1.776, 1.75, 1.80)
+                sigma = ROOT.RooRealVar("sigma", "sigma", 0.02, 0.001, 0.1)
+                alpha1 = ROOT.RooRealVar("alpha1", "alpha1", 1.5, 0.5, 5.0)
+                n1 = ROOT.RooRealVar("n1", "n1", 2.0, 0.5, 1000.0)
+                cb1 = ROOT.RooCrystalBall("cb1", "cb1", tripletMass, mean, sigma, alpha1, n1)
+                
+                # Crystal Ball #2 (right tail)
+                alpha2 = ROOT.RooRealVar("alpha2", "alpha2", -1.5, -5.0, -0.5)
+                n2 = ROOT.RooRealVar("n2", "n2", 2.0, 0.5, 1000.0)
+                cb2 = ROOT.RooCrystalBall("cb2", "cb2", tripletMass, mean, sigma, alpha2, n2)
+                
+                # Combine both CBs into a double CB
+                frac = ROOT.RooRealVar("frac", "frac", 0.5, 0.0, 1.0)
+                mc_pdf = ROOT.RooAddPdf("mc_pdf", "Double Crystal Ball", cb1, cb2, frac)
+                
+                fitresult = mc_pdf.fitTo(fullmc_unweighted, ROOT.RooFit.Range("fullRange"), ROOT.RooFit.Save())
                 
                 Gaussian_Sigma_From_Loose_BDT_Cut = sigma.getVal()
                 
@@ -1019,7 +1031,7 @@ class BDT_Shape_Comparisons:
                 phivetoes="(fabs(dimu_OS1 - 1.020)>0.020)&(fabs(dimu_OS2 - 1.020)>0.020)&"
                 omegavetoes="fabs(dimu_OS1 - 0.782)>0.020&fabs(dimu_OS2 - 0.782)>0.020&"
                 
-                MCSelector = RooFormulaVar('MCSelector', 'MCSelector', ' bdt_cv > ' + str(bdt_cut)+' & '+ phivetoes+' isMC !=0 & (isMC == 211 | isMC == 210231 | isMC == 210232 | isMC == 210233 ) & (tripletMass>=%s & tripletMass<=%s) ' %(signal_range_lo,signal_range_hi) , RooArgList(variables))
+                MCSelector = RooFormulaVar('MCSelector', 'MCSelector', ' bdt_cv > ' + str(bdt_cut)+' & '+ phivetoes+' isMC !=0 & (isMC == 211 | isMC == 210231 | isMC == 210232 | isMC == 210233 ) & (tripletMass>=%s & tripletMass<=%s) ' %(fit_range_lo,fit_range_hi) , RooArgList(variables))
                 
                 fullmc_unweighted = RooDataSet('mc', 'mc', tree, variables, MCSelector)
                 dataset_vars = fullmc_unweighted.get()
@@ -1027,27 +1039,39 @@ class BDT_Shape_Comparisons:
                 
                 fullmc = RooDataSet('mc', 'mc', fullmc_unweighted, dataset_vars, "",'scale')
                 
-                tripletMass.setRange("fullRange",fit_range_lo,fit_range_hi)
+                tripletMass.setRange("fullRange",1.6,2.0)
                 
-                mean = ROOT.RooRealVar("mean", "mean", 1.776, 0., 5.)
-                sigma = ROOT.RooRealVar("sigma", "sigma", 0.5, 0.001, 10)
-                Gauss = ROOT.RooGaussian("Gauss", "Gauss dist", tripletMass, mean, sigma)
-                GaussNorm = ROOT.RooRealVar("GaussNorm", "GaussNorm", 0.5, 0.001, 1.0)
-                mc_pdf = ROOT.RooAddPdf("mc_pdf", "mc_pdf", ROOT.RooArgList(Gauss), ROOT.RooArgList(GaussNorm))
-                mc_fitresult = mc_pdf.fitTo(fullmc_unweighted, ROOT.RooFit.Range("fullRange"), ROOT.RooFit.Save())
+                # Crystal Ball #1 (left tail)
+                mean = ROOT.RooRealVar("mean", "mean", 1.776, 1.75, 1.80)
+                sigma = ROOT.RooRealVar("sigma", "sigma", 0.02, 0.001, 0.1)
+                alpha1 = ROOT.RooRealVar("alpha1", "alpha1", 1.5, 0.5, 5.0)
+                n1 = ROOT.RooRealVar("n1", "n1", 2.0, 0.5, 1000.0)
+                cb1 = ROOT.RooCrystalBall("cb1", "cb1", tripletMass, mean, sigma, alpha1, n1)
                 
-                Gaussian_Sigma_From_Loose_BDT_Cut = sigma.getVal()
+                # Crystal Ball #2 (right tail)
+                alpha2 = ROOT.RooRealVar("alpha2", "alpha2", -1.5, -5.0, -0.5)
+                n2 = ROOT.RooRealVar("n2", "n2", 2.0, 0.5, 1000.0)
+                cb2 = ROOT.RooCrystalBall("cb2", "cb2", tripletMass, mean, sigma, alpha2, n2)
+                
+                # Combine both CBs into a double CB
+                frac = ROOT.RooRealVar("frac", "frac", 0.5, 0.0, 1.0)
+                mc_pdf = ROOT.RooAddPdf("mc_pdf", "Double Crystal Ball", cb1, cb2, frac)
+                
+                fitresult = mc_pdf.fitTo(fullmc_unweighted, ROOT.RooFit.Range("fullRange"), ROOT.RooFit.Save())
+                
+                
+                
                 
                 # Create canvas
                 canvas = ROOT.TCanvas("canvas", "canvas", 800, 800)
-                canvas.SetLeftMargin( L/W )
-                canvas.SetRightMargin( R/W )
-                canvas.SetTopMargin( T/H )
-                canvas.SetBottomMargin( B/H )
+                canvas.SetLeftMargin(L/W)
+                canvas.SetRightMargin(R/W)
+                canvas.SetTopMargin(T/H)
+                canvas.SetBottomMargin(B/H)
                 canvas.cd()
                 
                 # Create frame for tripletMass
-                frame = tripletMass.frame(ROOT.RooFit.Title(f"Signal Gaussian Fit: {categ}"))
+                frame = tripletMass.frame(ROOT.RooFit.Title(f"Signal DoubleCB Fit: {categ}"))
                 
                 # Plot the dataset (scaled signal)
                 fullmc.plotOn(
@@ -1058,7 +1082,7 @@ class BDT_Shape_Comparisons:
                     ROOT.RooFit.Name("sig_data")
                 )
                 
-                # Plot the fitted Gaussian
+                # Plot the fitted Double Crystal Ball
                 mc_pdf.plotOn(
                     frame,
                     ROOT.RooFit.LineColor(ROOT.kRed),
@@ -1070,6 +1094,10 @@ class BDT_Shape_Comparisons:
                 mean_err = mean.getError()
                 sigma_val = sigma.getVal()
                 sigma_err = sigma.getError()
+                alphaL_val = alpha1.getVal()
+                alphaR_val = alpha2.getVal()
+                nL_val = n1.getVal()
+                nR_val = n2.getVal()
                 
                 frame.GetXaxis().SetNdivisions(505)
                 frame.GetYaxis().SetTitleOffset(1.6)
@@ -1077,19 +1105,21 @@ class BDT_Shape_Comparisons:
                 frame.Draw()
                 
                 # Add legend
-                legend = ROOT.TLegend(0.60, 0.70, 0.88, 0.88)
+                legend = ROOT.TLegend(0.60, 0.65, 0.88, 0.88)
                 legend.SetBorderSize(0)
                 legend.SetFillStyle(0)
                 legend.AddEntry(frame.findObject("sig_data"), "Signal MC", "lep")
-                legend.AddEntry(frame.findObject("fit_curve"), "Gaussian Fit", "l")
+                legend.AddEntry(frame.findObject("fit_curve"), "Double CB Fit", "l")
                 legend.Draw()
                 
-                # Add TLatex for mean and sigma
+                # Add TLatex for fit parameters
                 latex = ROOT.TLatex()
                 latex.SetNDC()
                 latex.SetTextSize(0.035)
-                latex.DrawLatex(0.60, 0.63, f"#mu = {mean_val:.5f} #pm {mean_err:.5f}")
-                latex.DrawLatex(0.60, 0.58, f"#sigma = {sigma_val:.5f} #pm {sigma_err:.5f}")
+                latex.DrawLatex(0.60, 0.60, f"#mu = {mean_val:.5f} #pm {mean_err:.5f}")
+                latex.DrawLatex(0.60, 0.55, f"#sigma = {sigma_val:.5f} #pm {sigma_err:.5f}")
+                latex.DrawLatex(0.60, 0.50, f"#alpha_{{L}} = {alphaL_val:.3f}, n_{{L}} = {nL_val:.3f}")
+                latex.DrawLatex(0.60, 0.45, f"#alpha_{{R}} = {alphaR_val:.3f}, n_{{R}} = {nR_val:.3f}")
                 
                 # Save the plot
                 CMSStyle.CMS_lumi(canvas, 5, 11)
@@ -1099,11 +1129,386 @@ class BDT_Shape_Comparisons:
 
                 
                 
+                
+        
+        
+        def get_signal_fit_norefit(self, datafile, categ, WhetherMC=False):
+                
+                fit_range_lo = 1.6
+                fit_range_hi = 2.0
+                
+                signal_range_lo = 1.74
+                signal_range_hi = 1.81
+                
+                MiniTreeFile = ROOT.TFile.Open(datafile)
+                MiniTreeFile.cd()
+                
+                treeName=''
+                signalnorm = 1.0
+                cat_label = ""
+                bdt_cut = 0.1 #A stringent enough cut
+                if(categ == 'taue'):
+                        treeName  = 'ztau3mutaue'
+                        signalnorm = 0.00000856928
+                        cat_label = r"$\tau_{e}$"
+                        bdt_cut = 0.24
+                if(categ == 'taumu'):
+                        treeName = 'ztau3mutaumu'
+                        signalnorm = 0.00000822810
+                        cat_label = r"$\tau_{\mu}$"
+                        bdt_cut = 0.36
+                if(categ == 'tauhA'):
+                        treeName = 'ztau3mutauh_A'
+                        signalnorm = 0.00000815958
+                        cat_label = r"$\tau_{h,1-prong}$"
+                        bdt_cut = 0.28
+                if(categ == 'tauhB'):
+                        treeName = 'ztau3mutauh_B'
+                        signalnorm = 0.00000815958
+                        cat_label = r"$\tau_{h,3-prong}$"
+                        bdt_cut = 0.20
+                if(categ == 'all'):
+                        treeName   = 'ztautau'
+                        signalnorm = 0.00000824176
+                        cat_label = "Inclusive"
+                        bdt_cut = 0.59
+                
+                bdt_cut = 0.1
+                bdt_cut = -1.0
+                
+                tree = MiniTreeFile.Get(treeName)
+                
+                tripletMassNonRefit  = ROOT.RooRealVar('tripletMassNonRefit'        , '3#mu mass'           , fit_range_lo, fit_range_hi, 'GeV')
+                bdt_cv               = ROOT.RooRealVar('bdt_cv'                     , 'bdt_cv'              , -1 , 1)
+                dimu_OS1             = ROOT.RooRealVar('dimu_OS1'                   , 'dimu_OS1'            ,  0 , 100)
+                dimu_OS2             = ROOT.RooRealVar('dimu_OS2'                   , 'dimu_OS2'            ,  0 , 100)
+                event_weight         = ROOT.RooRealVar('weight'                     , 'event_weight'        ,  0,  5)  # this weight includes also the scale  mc signal scale
+                category             = ROOT.RooRealVar('category'                   , 'category'            ,  0,  5)
+                isMC                 = ROOT.RooRealVar('isMC'                       , 'isMC'                ,  0,  1000000)
+                scale                = ROOT.RooRealVar('scale'                      , 'scale'               ,  signalnorm)  
+                
+                
+                
+                variables = ROOT.RooArgSet()
+                variables.add(tripletMassNonRefit)
+                variables.add(bdt_cv)
+                variables.add(dimu_OS1)
+                variables.add(dimu_OS2)
+                variables.add(event_weight)
+                variables.add(category)
+                variables.add(isMC)
+                
+                #Define mc and data which can be reduced later
+                
+                phivetoes="(fabs(dimu_OS1 - 1.020)>0.020)&(fabs(dimu_OS2 - 1.020)>0.020)&"
+                omegavetoes="fabs(dimu_OS1 - 0.782)>0.020&fabs(dimu_OS2 - 0.782)>0.020&"
+                
+                MCSelector = RooFormulaVar('MCSelector', 'MCSelector', ' bdt_cv > ' + str(bdt_cut)+' & '+ phivetoes+' isMC !=0 & (isMC == 211 | isMC == 210231 | isMC == 210232 | isMC == 210233 ) & (tripletMassNonRefit>=%s & tripletMassNonRefit<=%s) ' %(fit_range_lo,fit_range_hi) , RooArgList(variables))
+                
+                fullmc_unweighted = RooDataSet('mc', 'mc', tree, variables, MCSelector)
+                dataset_vars = fullmc_unweighted.get()
+                dataset_vars.add(scale)
+                
+                fullmc = RooDataSet('mc', 'mc', fullmc_unweighted, dataset_vars, "",'scale')
+                
+                tripletMassNonRefit.setRange("fullRange",1.6,2.0)
+                
+                # Crystal Ball #1 (left tail)
+                mean = ROOT.RooRealVar("mean", "mean", 1.776, 1.75, 1.80)
+                sigma = ROOT.RooRealVar("sigma", "sigma", 0.02, 0.001, 0.1)
+                alpha1 = ROOT.RooRealVar("alpha1", "alpha1", 1.5, 0.5, 5.0)
+                n1 = ROOT.RooRealVar("n1", "n1", 2.0, 0.5, 1000.0)
+                cb1 = ROOT.RooCrystalBall("cb1", "cb1", tripletMassNonRefit, mean, sigma, alpha1, n1)
+                
+                # Crystal Ball #2 (right tail)
+                alpha2 = ROOT.RooRealVar("alpha2", "alpha2", -1.5, -5.0, -0.5)
+                n2 = ROOT.RooRealVar("n2", "n2", 2.0, 0.5, 1000.0)
+                cb2 = ROOT.RooCrystalBall("cb2", "cb2", tripletMassNonRefit, mean, sigma, alpha2, n2)
+                
+                # Combine both CBs into a double CB
+                frac = ROOT.RooRealVar("frac", "frac", 0.5, 0.0, 1.0)
+                mc_pdf = ROOT.RooAddPdf("mc_pdf", "Double Crystal Ball", cb1, cb2, frac)
+                
+                fitresult = mc_pdf.fitTo(fullmc_unweighted, ROOT.RooFit.Range("fullRange"), ROOT.RooFit.Save())
+                
+                
+                
+                
+                # Create canvas
+                canvas = ROOT.TCanvas("canvas", "canvas", 800, 800)
+                canvas.SetLeftMargin(L/W)
+                canvas.SetRightMargin(R/W)
+                canvas.SetTopMargin(T/H)
+                canvas.SetBottomMargin(B/H)
+                canvas.cd()
+                
+                # Create frame for tripletMassNonRefit
+                frame = tripletMassNonRefit.frame(ROOT.RooFit.Title(f"Signal DoubleCB Fit: {categ}"))
+                
+                # Plot the dataset (scaled signal)
+                fullmc.plotOn(
+                    frame,
+                    ROOT.RooFit.Binning(40),
+                    ROOT.RooFit.MarkerStyle(20),
+                    ROOT.RooFit.MarkerColor(ROOT.kBlack),
+                    ROOT.RooFit.Name("sig_data")
+                )
+                
+                # Plot the fitted Double Crystal Ball
+                mc_pdf.plotOn(
+                    frame,
+                    ROOT.RooFit.LineColor(ROOT.kRed),
+                    ROOT.RooFit.Name("fit_curve")
+                )
+                
+                # Extract fit values
+                mean_val = mean.getVal()
+                mean_err = mean.getError()
+                sigma_val = sigma.getVal()
+                sigma_err = sigma.getError()
+                alphaL_val = alpha1.getVal()
+                alphaR_val = alpha2.getVal()
+                nL_val = n1.getVal()
+                nR_val = n2.getVal()
+                
+                frame.GetXaxis().SetNdivisions(505)
+                frame.GetYaxis().SetTitleOffset(1.6)
+                frame.GetXaxis().SetTitle("m_{3#mu} (GeV)")
+                frame.Draw()
+                
+                # Add legend
+                legend = ROOT.TLegend(0.60, 0.65, 0.88, 0.88)
+                legend.SetBorderSize(0)
+                legend.SetFillStyle(0)
+                legend.AddEntry(frame.findObject("sig_data"), "Signal MC", "lep")
+                legend.AddEntry(frame.findObject("fit_curve"), "Double CB Fit", "l")
+                legend.Draw()
+                
+                # Add TLatex for fit parameters
+                latex = ROOT.TLatex()
+                latex.SetNDC()
+                latex.SetTextSize(0.035)
+                latex.DrawLatex(0.60, 0.60, f"#mu = {mean_val:.5f} #pm {mean_err:.5f}")
+                latex.DrawLatex(0.60, 0.55, f"#sigma = {sigma_val:.5f} #pm {sigma_err:.5f}")
+                latex.DrawLatex(0.60, 0.50, f"#alpha_{{L}} = {alphaL_val:.3f}, n_{{L}} = {nL_val:.3f}")
+                latex.DrawLatex(0.60, 0.45, f"#alpha_{{R}} = {alphaR_val:.3f}, n_{{R}} = {nR_val:.3f}")
+                
+                # Save the plot
+                CMSStyle.CMS_lumi(canvas, 5, 11)
+                canvas.Update()
+                canvas.SaveAs(f"signal_fit_norefit_{categ}.png")
+                print(f"Saved: signal_fit_norefit_{categ}.png")
+                
+                
+                
+        def get_sig_bkg_efficiencies(self, datafile, categ, WhetherMC=False):
+                
+                fit_range_lo = 1.6
+                fit_range_hi = 2.0
+                
+                signal_range_lo = 1.74
+                signal_range_hi = 1.81
+                
+                MiniTreeFile = ROOT.TFile.Open(datafile)
+                MiniTreeFile.cd()
+                
+                treeName=''
+                signalnorm = 1.0
+                cat_label = ""
+                bdt_cut = 0.1 #A stringent enough cut
+                filename = ''
+                if(categ == 'taue'):
+                        treeName  = 'ztau3mutaue'
+                        signalnorm = 0.00000856928
+                        cat_label = r"$\tau_{e}$"
+                        bdt_cut = 0.24
+                        filename = '../Projections/makeYield/ZTT/TextLimits_taue.txt'
+                if(categ == 'taumu'):
+                        treeName = 'ztau3mutaumu'
+                        signalnorm = 0.00000822810
+                        cat_label = r"$\tau_{\mu}$"
+                        bdt_cut = 0.36
+                        filename = '../Projections/makeYield/ZTT/TextLimits_taumu.txt'
+                if(categ == 'tauhA'):
+                        treeName = 'ztau3mutauh_A'
+                        signalnorm = 0.00000815958
+                        cat_label = r"$\tau_{h,1-prong}$"
+                        bdt_cut = 0.28
+                        filename = '../Projections/makeYield/ZTT/TextLimits_tauhA.txt'
+                if(categ == 'tauhB'):
+                        treeName = 'ztau3mutauh_B'
+                        signalnorm = 0.00000815958
+                        cat_label = r"$\tau_{h,3-prong}$"
+                        bdt_cut = 0.20
+                        filename = '../Projections/makeYield/ZTT/TextLimits_tauhB.txt'
+                if(categ == 'all'):
+                        treeName   = 'ztautau'
+                        signalnorm = 0.00000824176
+                        cat_label = "Inclusive"
+                        bdt_cut = 0.59
+                        filename = '../Projections/makeYield/ZTT/TextLimits_tauhB.txt'
+                
+                bdt_cut = 0.1
+                bdt_cut = -1.0
+                
+                tree = MiniTreeFile.Get(treeName)
+                
+                tripletMass          = ROOT.RooRealVar('tripletMass'                , '3#mu mass'           , fit_range_lo, fit_range_hi, 'GeV')
+                bdt_cv               = ROOT.RooRealVar('bdt_cv'                     , 'bdt_cv'              , -1 , 1)
+                dimu_OS1             = ROOT.RooRealVar('dimu_OS1'                   , 'dimu_OS1'            ,  0 , 100)
+                dimu_OS2             = ROOT.RooRealVar('dimu_OS2'                   , 'dimu_OS2'            ,  0 , 100)
+                event_weight         = ROOT.RooRealVar('weight'                     , 'event_weight'        ,  0,  5)  # this weight includes also the scale  mc signal scale
+                category             = ROOT.RooRealVar('category'                   , 'category'            ,  0,  5)
+                isMC                 = ROOT.RooRealVar('isMC'                       , 'isMC'                ,  0,  1000000)
+                scale                = ROOT.RooRealVar('scale'                      , 'scale'               ,  signalnorm)  
+                
+                
+                
+                variables = ROOT.RooArgSet()
+                variables.add(tripletMass)
+                variables.add(bdt_cv)
+                variables.add(dimu_OS1)
+                variables.add(dimu_OS2)
+                variables.add(event_weight)
+                variables.add(category)
+                variables.add(isMC)
+                
+                #Define mc and data which can be reduced later
+                
+                phivetoes="(fabs(dimu_OS1 - 1.020)>0.020)&(fabs(dimu_OS2 - 1.020)>0.020)&"
+                omegavetoes="fabs(dimu_OS1 - 0.782)>0.020&fabs(dimu_OS2 - 0.782)>0.020&"
+                
+                MCSelector = RooFormulaVar('MCSelector', 'MCSelector', ' bdt_cv > ' + str(bdt_cut)+' & '+ phivetoes+' isMC !=0 & (isMC == 211 | isMC == 210231 | isMC == 210232 | isMC == 210233 ) & (tripletMass>=%s & tripletMass<=%s) ' %(fit_range_lo,fit_range_hi) , RooArgList(variables))
+                
+                fullmc_unweighted = RooDataSet('mc', 'mc', tree, variables, MCSelector)
+                dataset_vars = fullmc_unweighted.get()
+                dataset_vars.add(scale)
+                
+                fullmc = RooDataSet('mc', 'mc', fullmc_unweighted, dataset_vars, "",'scale')
+                
+                total_mc_scaled_signal_events = fullmc.sumEntries()
+                
+                tripletMass.setRange("fullRange",1.73,1.82)
+                
+                mean = ROOT.RooRealVar("mean", "mean", 1.776, 0., 5.)
+                sigma = ROOT.RooRealVar("sigma", "sigma", 0.5, 0.001, 10)
+                Gauss = ROOT.RooGaussian("Gauss", "Gauss dist", tripletMass, mean, sigma)
+                GaussNorm = ROOT.RooRealVar("GaussNorm", "GaussNorm", 0.5, 0.001, 1.0)
+                mc_pdf = ROOT.RooAddPdf("mc_pdf", "mc_pdf", ROOT.RooArgList(Gauss), ROOT.RooArgList(GaussNorm))
+                mc_fitresult = mc_pdf.fitTo(fullmc_unweighted, ROOT.RooFit.Range("fullRange"), ROOT.RooFit.Save())
+                
+                Gaussian_Sigma_From_Loose_BDT_Cut = sigma.getVal()
+                
+                BlindDataSelector = RooFormulaVar('DataSelector', 'DataSelector', phivetoes+' isMC == 0 & (tripletMass<=%s || tripletMass>=%s) & (tripletMass>=%s & tripletMass<=%s) ' %(signal_range_lo,signal_range_hi,fit_range_lo,fit_range_hi) , RooArgList(variables))
+                
+                fulldata_shape = RooDataSet('fulldata_shape', 'fulldata_shape', tree,  variables, BlindDataSelector)
+                
+                fulldata = fulldata_shape
+                
+                total_data_sideband_events = fulldata.sumEntries()
+                
+                bdt = []
+                lumi = []
+                sig = []
+                bkg = []
+                bkg_err = []
+                
+                # Read the file and extract the data
+                with open( filename, "r") as file:
+                        for line in file:
+                            parts = line.split()
+                            bdt.append(float(parts[1]))       # bdt
+                            lumi.append(float(parts[3]))      # lumi
+                            sig.append(float(parts[7]))       # sig
+                            bkg.append(float(parts[9]))       # bkg
+                            bkg_err.append(float(parts[11]))  # bkg_err
+                            
+                # Compute efficiencies
+                sig_eff = []
+                bkg_eff = []
+                
+                for i in range(len(bdt)):
+                    lumi_scale = lumi[i] / 59.83
+
+                    # Scale total expected MC/data yields for that lumi
+                    expected_signal_events = total_mc_scaled_signal_events * lumi_scale
+                    expected_background_events = total_data_sideband_events * lumi_scale
+
+                    # Compute efficiencies
+                    sig_eff.append(sig[i] / expected_signal_events if expected_signal_events > 0 else 0)
+                    bkg_eff.append(bkg[i] / expected_background_events if expected_background_events > 0 else 0)
+
+                # Optional: print or store
+                for i in range(len(bdt)):
+                    print(f"BDT: {bdt[i]:.2f}, SigEff: {sig_eff[i]:.4f}, BkgEff: {bkg_eff[i]:.4f}")
+                
+                # === Plot 1: Signal Efficiency vs BDT Cut ===
+                canvas_sig = ROOT.TCanvas("canvas_sig", "Signal Efficiency", 800, 800)
+                canvas_sig.SetLeftMargin( L/W )
+                canvas_sig.SetRightMargin( R/W )
+                canvas_sig.SetTopMargin( T/H )
+                canvas_sig.SetBottomMargin( B/H )
+                canvas_sig.cd()
+                
+                graph_sig = ROOT.TGraph(len(bdt), array.array('d', bdt), array.array('d', sig_eff))
+                graph_sig.SetTitle(f"Signal Efficiency: {categ}")
+                graph_sig.SetLineColor(ROOT.kRed+1)
+                graph_sig.SetLineWidth(2)
+                graph_sig.SetMarkerColor(ROOT.kRed+1)
+                graph_sig.SetMarkerStyle(20)
+                graph_sig.Draw("ALP")
+                graph_sig.GetXaxis().SetTitle("BDT Cut")
+                graph_sig.GetYaxis().SetTitle("Signal Efficiency")
+                graph_sig.GetYaxis().SetTitleOffset(1.4)
+                graph_sig.GetXaxis().SetNdivisions(505)
+                graph_sig.GetYaxis().SetNdivisions(505)
+                graph_sig.GetYaxis().SetRangeUser(0, 1.05)
+                
+                CMSStyle.CMS_lumi(canvas_sig, 5, 11)
+                canvas_sig.Update()
+                canvas_sig.SaveAs(f"signal_efficiency_vs_bdt_{categ}.png")
+                print(f"Saved: signal_efficiency_vs_bdt_{categ}.png")
+                
+                
+                # === Plot 2: Background Efficiency vs BDT Cut ===
+                canvas_bkg = ROOT.TCanvas("canvas_bkg", "Background Efficiency", 800, 800)
+                canvas_bkg.SetLeftMargin( L/W )
+                canvas_bkg.SetRightMargin( R/W )
+                canvas_bkg.SetTopMargin( T/H )
+                canvas_bkg.SetBottomMargin( B/H )
+                canvas_bkg.cd()
+                
+                graph_bkg = ROOT.TGraph(len(bdt), array.array('d', bdt), array.array('d', bkg_eff))
+                graph_bkg.SetTitle(f"Background Efficiency: {categ}")
+                graph_bkg.SetLineColor(ROOT.kBlue+1)
+                graph_bkg.SetLineWidth(2)
+                graph_bkg.SetMarkerColor(ROOT.kBlue+1)
+                graph_bkg.SetMarkerStyle(21)
+                graph_bkg.Draw("ALP")
+                graph_bkg.GetXaxis().SetTitle("BDT Cut")
+                graph_bkg.GetYaxis().SetTitle("Background Efficiency")
+                graph_bkg.GetYaxis().SetTitleOffset(1.8)
+                graph_bkg.GetXaxis().SetNdivisions(505)
+                graph_bkg.GetYaxis().SetNdivisions(505)
+                graph_bkg.GetYaxis().SetRangeUser(0, 0.0012)
+                
+                CMSStyle.CMS_lumi(canvas_bkg, 5, 11)
+                canvas_bkg.Update()
+                canvas_bkg.SaveAs(f"background_efficiency_vs_bdt_{categ}.png")
+                print(f"Saved: background_efficiency_vs_bdt_{categ}.png")
+
+
+                
+                
 if __name__ == "__main__":
     
         ROOT.gROOT.SetBatch(True)
         
-        datafile = "../../Combine_Tree_ztau3mutau_orig_PostBDT.root"
+        #datafile = "../../Combine_Tree_ztau3mutau_orig_PostBDT.root"
+        
+        datafile = "../../Combine_Tree_ztau3mutau_PF_PostBDT.root"
+        
+        datafile_norefit = "../../Combine_Tree_ztau3mutau_PF_PostBDT_unrefit_mass.root"
         
         #datafile_ZTTmass = "../../Combine_Tree_ztau3mutau_ZTTMass_PF_PostBDT.root"
         datafile_ZTTmass = "../../Combine_Tree_ztau3mutau_ZTTMass_origTracker_PostBDT.root"
@@ -1168,7 +1573,13 @@ if __name__ == "__main__":
             #BDTPlotter.Plot_Bdt_Symmetry(datafile, categ, False)
             
             # 6. Get signal peak width
-            #BDTPlotter.get_signal_window(datafile, categ, False)
+            BDTPlotter.get_signal_window(datafile, categ, False)
             
             # 7. Get signal peak fit
-            BDTPlotter.get_signal_fit(datafile, categ, False)
+            #BDTPlotter.get_signal_fit(datafile, categ, False)
+            
+            # 7. Get signal peak fit
+            #BDTPlotter.get_signal_fit_norefit(datafile_norefit, categ, False)
+            
+            # 8. Get signal sig/bkg efficiencies
+            #BDTPlotter.get_sig_bkg_efficiencies(datafile, categ, False)
