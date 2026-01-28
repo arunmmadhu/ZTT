@@ -73,7 +73,7 @@ class BDT_Shape_Comparisons:
             signal_range_lo = 1.74
             signal_range_hi = 1.81
             
-            whichToFit = "Combine_Tree_ztau3mutau_PF_PostBDT.root"
+            whichToFit = "Combine_Tree_ztau3mutau_PF_PostBDT_symmetric.root"
             which_col = ROOT.kRed
             
             # Map categ to treename and LaTeX-style label
@@ -85,7 +85,7 @@ class BDT_Shape_Comparisons:
             elif categ == 'taumu':
                 treename = 'ztau3mutaumu'
                 cat_label = r"#tau_{#mu}"
-                whichToFit = "Combine_Tree_ztau3mutau_PF_PostBDT.root"
+                whichToFit = "Combine_Tree_ztau3mutau_PF_PostBDT_symmetric.root"
                 which_col = ROOT.kRed
             elif categ == 'tauhA':
                 treename = 'ztau3mutauh_A'
@@ -100,7 +100,7 @@ class BDT_Shape_Comparisons:
             elif categ == 'all':
                 treename = 'ztautau'
                 cat_label = "Inclusive"
-                whichToFit = "Combine_Tree_ztau3mutau_PF_PostBDT.root"
+                whichToFit = "Combine_Tree_ztau3mutau_PF_PostBDT_symmetric.root"
                 which_col = ROOT.kRed
             else:
                 treename = categ
@@ -598,7 +598,7 @@ class BDT_Shape_Comparisons:
                 Ratio_list = []
                 
                 
-                fit_range_lo = 1.6
+                fit_range_lo = 1.55
                 fit_range_hi = 2.0
                 
                 signal_range_lo = 1.74
@@ -1436,7 +1436,7 @@ class BDT_Shape_Comparisons:
 
                     # Compute efficiencies
                     sig_eff.append(sig[i] / expected_signal_events if expected_signal_events > 0 else 0)
-                    bkg_eff.append(bkg[i] / expected_background_events if expected_background_events > 0 else 0)
+                    bkg_eff.append( (bkg[i] * (1.0/0.21212121) ) / expected_background_events if expected_background_events > 0 else 0)
 
                 # Optional: print or store
                 for i in range(len(bdt)):
@@ -1490,7 +1490,7 @@ class BDT_Shape_Comparisons:
                 graph_bkg.GetYaxis().SetTitleOffset(1.8)
                 graph_bkg.GetXaxis().SetNdivisions(505)
                 graph_bkg.GetYaxis().SetNdivisions(505)
-                graph_bkg.GetYaxis().SetRangeUser(0, 0.0012)
+                graph_bkg.GetYaxis().SetRangeUser(0, 0.006)
                 
                 CMSStyle.CMS_lumi(canvas_bkg, 5, 11)
                 canvas_bkg.Update()
@@ -1506,7 +1506,9 @@ if __name__ == "__main__":
         
         #datafile = "../../Combine_Tree_ztau3mutau_orig_PostBDT.root"
         
-        datafile = "../../Combine_Tree_ztau3mutau_PF_PostBDT.root"
+        #datafile = "../../Combine_Tree_ztau3mutau_PF_PostBDT.root"
+        
+        datafile = "../../Combine_Tree_ztau3mutau_PF_PostBDT_symmetric.root"
         
         datafile_norefit = "../../Combine_Tree_ztau3mutau_PF_PostBDT_unrefit_mass.root"
         
@@ -1534,7 +1536,8 @@ if __name__ == "__main__":
         dataset_files = [
             "../../Combine_Tree_ztau3mutau_orig_PostBDT.root",
             #"../../Combine_Tree_ztau3mutau_PFGL_PostBDT.root",
-            "../../Combine_Tree_ztau3mutau_PF_PostBDT.root",
+            #"../../Combine_Tree_ztau3mutau_PF_PostBDT.root",
+            "../../Combine_Tree_ztau3mutau_PF_PostBDT_symmetric.root",
         ]
         
         # Loop over categories
@@ -1558,7 +1561,7 @@ if __name__ == "__main__":
                 tree = 'ztautau'
                 
             # 1. Compare different datasets (same selection)
-            #BDTPlotter.Compare_BDT_Scores_MultipleDatasets(dataset_files, categ, True)
+            BDTPlotter.Compare_BDT_Scores_MultipleDatasets(dataset_files, categ, False)
             
             # 2. Compare different selections on the same file. Pick any one file.
             #BDTPlotter.Compare_BDT_Scores_MultipleSelections(datafile, categ, bdt_selections, selection_labels, isMC=True)
@@ -1573,7 +1576,7 @@ if __name__ == "__main__":
             #BDTPlotter.Plot_Bdt_Symmetry(datafile, categ, False)
             
             # 6. Get signal peak width
-            BDTPlotter.get_signal_window(datafile, categ, False)
+            #BDTPlotter.get_signal_window(datafile, categ, False)
             
             # 7. Get signal peak fit
             #BDTPlotter.get_signal_fit(datafile, categ, False)
