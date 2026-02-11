@@ -67,40 +67,40 @@ class BDT_Shape_Comparisons:
             
             labels = ["Relaxed cuts", "All cuts"]
             
-            fit_range_lo = 1.6
+            fit_range_lo = 1.55
             fit_range_hi = 2.0
             
             signal_range_lo = 1.74
             signal_range_hi = 1.81
             
-            whichToFit = "Combine_Tree_ztau3mutau_PF_PostBDT_symmetric.root"
+            whichToFit = "Combine_Tree_ztau3mutau_PostThesis_PF.root"
             which_col = ROOT.kRed
             
             # Map categ to treename and LaTeX-style label
             if categ == 'taue':
                 treename = 'ztau3mutaue'
                 cat_label = r"#tau_{e}"
-                whichToFit = "Combine_Tree_ztau3mutau_orig_PostBDT.root"
+                whichToFit = "Combine_Tree_ztau3mutau_PostThesis_Relaxed.root"
                 which_col = ROOT.kBlack
             elif categ == 'taumu':
                 treename = 'ztau3mutaumu'
                 cat_label = r"#tau_{#mu}"
-                whichToFit = "Combine_Tree_ztau3mutau_PF_PostBDT_symmetric.root"
+                whichToFit = "Combine_Tree_ztau3mutau_PostThesis_PF.root"
                 which_col = ROOT.kRed
             elif categ == 'tauhA':
                 treename = 'ztau3mutauh_A'
                 cat_label = r"#tau_{h,1-prong}"
-                whichToFit = "Combine_Tree_ztau3mutau_orig_PostBDT.root"
+                whichToFit = "Combine_Tree_ztau3mutau_PostThesis_Relaxed.root"
                 which_col = ROOT.kBlack
             elif categ == 'tauhB':
                 treename = 'ztau3mutauh_B'
                 cat_label = r"#tau_{h,3-prong}"
-                whichToFit = "Combine_Tree_ztau3mutau_orig_PostBDT.root"
+                whichToFit = "Combine_Tree_ztau3mutau_PostThesis_Relaxed.root"
                 which_col = ROOT.kBlack
             elif categ == 'all':
                 treename = 'ztautau'
                 cat_label = "Inclusive"
-                whichToFit = "Combine_Tree_ztau3mutau_PF_PostBDT_symmetric.root"
+                whichToFit = "Combine_Tree_ztau3mutau_PostThesis_PFandGL.root"
                 which_col = ROOT.kRed
             else:
                 treename = categ
@@ -764,7 +764,7 @@ class BDT_Shape_Comparisons:
         def get_signal_window(self, datafile, categ, isMC=False):
 
                     
-                fit_range_lo = 1.6
+                fit_range_lo = 1.55
                 fit_range_hi = 2.0
                 
                 signal_range_lo = 1.74
@@ -962,7 +962,7 @@ class BDT_Shape_Comparisons:
                                             
         def get_signal_fit(self, datafile, categ, WhetherMC=False):
                 
-                fit_range_lo = 1.6
+                fit_range_lo = 1.55
                 fit_range_hi = 2.0
                 
                 signal_range_lo = 1.74
@@ -1134,7 +1134,7 @@ class BDT_Shape_Comparisons:
         
         def get_signal_fit_norefit(self, datafile, categ, WhetherMC=False):
                 
-                fit_range_lo = 1.6
+                fit_range_lo = 1.55
                 fit_range_hi = 2.0
                 
                 signal_range_lo = 1.74
@@ -1303,7 +1303,7 @@ class BDT_Shape_Comparisons:
                 
         def get_sig_bkg_efficiencies(self, datafile, categ, WhetherMC=False):
                 
-                fit_range_lo = 1.6
+                fit_range_lo = 1.55
                 fit_range_hi = 2.0
                 
                 signal_range_lo = 1.74
@@ -1322,31 +1322,31 @@ class BDT_Shape_Comparisons:
                         signalnorm = 0.00000856928
                         cat_label = r"$\tau_{e}$"
                         bdt_cut = 0.24
-                        filename = '../Projections/makeYield/ZTT/TextLimits_taue.txt'
+                        filename = '../Projections_PostThesis_PF/makeYield/ZTT/TextLimits_taue.txt'
                 if(categ == 'taumu'):
                         treeName = 'ztau3mutaumu'
                         signalnorm = 0.00000822810
                         cat_label = r"$\tau_{\mu}$"
                         bdt_cut = 0.36
-                        filename = '../Projections/makeYield/ZTT/TextLimits_taumu.txt'
+                        filename = '../Projections_PostThesis_PF/makeYield/ZTT/TextLimits_taumu.txt'
                 if(categ == 'tauhA'):
                         treeName = 'ztau3mutauh_A'
                         signalnorm = 0.00000815958
                         cat_label = r"$\tau_{h,1-prong}$"
                         bdt_cut = 0.28
-                        filename = '../Projections/makeYield/ZTT/TextLimits_tauhA.txt'
+                        filename = '../Projections_PostThesis_PF/makeYield/ZTT/TextLimits_tauhA.txt'
                 if(categ == 'tauhB'):
                         treeName = 'ztau3mutauh_B'
                         signalnorm = 0.00000815958
                         cat_label = r"$\tau_{h,3-prong}$"
                         bdt_cut = 0.20
-                        filename = '../Projections/makeYield/ZTT/TextLimits_tauhB.txt'
+                        filename = '../Projections_PostThesis_PF/makeYield/ZTT/TextLimits_tauhB.txt'
                 if(categ == 'all'):
                         treeName   = 'ztautau'
                         signalnorm = 0.00000824176
                         cat_label = "Inclusive"
                         bdt_cut = 0.59
-                        filename = '../Projections/makeYield/ZTT/TextLimits_tauhB.txt'
+                        filename = '../Projections_PostThesis_PF/makeYield/ZTT/TextLimits_all.txt'
                 
                 bdt_cut = 0.1
                 bdt_cut = -1.0
@@ -1436,7 +1436,7 @@ class BDT_Shape_Comparisons:
 
                     # Compute efficiencies
                     sig_eff.append(sig[i] / expected_signal_events if expected_signal_events > 0 else 0)
-                    bkg_eff.append( (bkg[i] * (1.0/0.21212121) ) / expected_background_events if expected_background_events > 0 else 0)
+                    bkg_eff.append( (bkg[i] * (1.0/0.18421052631) ) / expected_background_events if expected_background_events > 0 else 0)
 
                 # Optional: print or store
                 for i in range(len(bdt)):
@@ -1508,17 +1508,21 @@ if __name__ == "__main__":
         
         #datafile = "../../Combine_Tree_ztau3mutau_PF_PostBDT.root"
         
-        datafile = "../../Combine_Tree_ztau3mutau_PF_PostBDT_symmetric.root"
+        datafile = "../../Combine_Tree_ztau3mutau_PostThesis_PF.root"
+        
+        datafile_inclusive = "../../Combine_Tree_ztau3mutau_PostThesis_PFandGL.root"
+        
+        datafile_relaxed = "../../Combine_Tree_ztau3mutau_PostThesis_Relaxed.root"
         
         datafile_norefit = "../../Combine_Tree_ztau3mutau_PF_PostBDT_unrefit_mass.root"
         
         #datafile_ZTTmass = "../../Combine_Tree_ztau3mutau_ZTTMass_PF_PostBDT.root"
-        datafile_ZTTmass = "../../Combine_Tree_ztau3mutau_ZTTMass_origTracker_PostBDT.root"
+        datafile_ZTTmass = "../../Combine_Tree_ztau3mutau_ZTTMass_PostThesis.root"
         
         # Categories to loop over
         #categories = ['taue', 'taumu', 'tauhA', 'tauhB','all']
         categories = ['taue', 'taumu', 'tauhA', 'tauhB']
-        #categories = ['tauhB']
+        #categories = ['all']
         
         # Example BDT selections you want to compare
         bdt_selections = [
@@ -1533,11 +1537,22 @@ if __name__ == "__main__":
         selection_labels = [r"m_{#tau} = 1.65", r"m_{#tau} = 1.70", r"m_{#tau} = 1.85", r"m_{#tau} = 1.90", r"m_{#tau} = 1.95"]
         
         # Sample datasets (for Compare_BDT_Scores_MultipleDatasets)
+        dataset_files_bdt_fit = [
+            "../../Combine_Tree_ztau3mutau_PostThesis_Relaxed.root",
+            "../../Combine_Tree_ztau3mutau_PostThesis_PF.root",
+        ]
+        
+        dataset_files_bdt_fit_inclusive = [
+            "../../Combine_Tree_ztau3mutau_PostThesis_PF.root",
+            "../../Combine_Tree_ztau3mutau_PostThesis_PFandGL.root",
+        ]
+        
         dataset_files = [
-            "../../Combine_Tree_ztau3mutau_orig_PostBDT.root",
-            #"../../Combine_Tree_ztau3mutau_PFGL_PostBDT.root",
-            #"../../Combine_Tree_ztau3mutau_PF_PostBDT.root",
-            "../../Combine_Tree_ztau3mutau_PF_PostBDT_symmetric.root",
+            "../../Combine_Tree_ztau3mutau_PostThesis_PF.root"
+        ]
+        
+        dataset_files_inclusive = [
+            "../../Combine_Tree_ztau3mutau_PostThesis_PFandGL.root"
         ]
         
         # Loop over categories
@@ -1561,7 +1576,7 @@ if __name__ == "__main__":
                 tree = 'ztautau'
                 
             # 1. Compare different datasets (same selection)
-            BDTPlotter.Compare_BDT_Scores_MultipleDatasets(dataset_files, categ, False)
+            #BDTPlotter.Compare_BDT_Scores_MultipleDatasets(dataset_files_bdt_fit, categ, False)
             
             # 2. Compare different selections on the same file. Pick any one file.
             #BDTPlotter.Compare_BDT_Scores_MultipleSelections(datafile, categ, bdt_selections, selection_labels, isMC=True)
